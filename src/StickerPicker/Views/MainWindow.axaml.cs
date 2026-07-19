@@ -269,6 +269,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnHotkeyGestureCaptured(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            vm.Settings.SaveHotkeyCommand.Execute(parameter: null);
+        }
+    }
+
     private static StackPanel BuildNameDialog(string label, out TextBox box, out Button ok)
     {
         box = new TextBox { PlaceholderText = label };

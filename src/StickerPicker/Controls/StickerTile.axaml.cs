@@ -18,9 +18,9 @@ public partial class StickerTile : UserControl
             return;
         }
 
-        if (DataContext is StickerItemViewModel item && item.SelectCommand.CanExecute(parameter: null))
+        if (DataContext is StickerItemViewModel item && item.SelectCommand.CanExecute(item))
         {
-            item.SelectCommand.Execute(parameter: null);
+            item.SelectCommand.Execute(item);
             e.Handled = true;
         }
     }

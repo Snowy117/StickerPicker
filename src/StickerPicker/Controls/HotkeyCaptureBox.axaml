@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="StickerPicker.Controls.HotkeyCaptureBox"
+             Focusable="True">
+  <Border Background="{DynamicResource SteamPanelAltBrush}"
+          BorderBrush="{DynamicResource SteamBorderBrush}"
+          BorderThickness="1"
+          Padding="8,4"
+          Cursor="Hand"
+          PointerPressed="OnBorderPointerPressed">
+    <TextBlock x:Name="Display"
+               VerticalAlignment="Center"
+               Text="点击后按下快捷键" />
+  </Border>
+</UserControl>

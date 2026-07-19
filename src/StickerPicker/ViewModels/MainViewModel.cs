@@ -18,6 +18,8 @@ public partial class MainViewModel : ViewModelBase
     private AppConfig _config;
     private bool _suppressCategoryChange;
     private readonly bool _isReady;
+    private DispatcherTimer? _thumbnailSaveTimer;
+    private double _pendingThumbnailSize;
 
     public MainViewModel(
         IStickerLibrary library,
@@ -141,9 +143,36 @@ public partial class MainViewModel : ViewModelBase
             return;
         }
 
-        _config.ThumbnailSize = value;
+        ResizeTiles(value);
+        ScheduleThumbnailSizePersist(value);
+    }
+
+    private void ResizeTiles(double size)
+    {
+        foreach (var sticker in Stickers)
+        {
+            sticker.TileSize = size;
+        }
+    }
+
+    private void ScheduleThumbnailSizePersist(double value)
+    {
+        _pendingThumbnailSize = value;
+        _thumbnailSaveTimer ??= new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(200),
+        };
+        _thumbnailSaveTimer.Tick -= OnThumbnailSaveTick;
+        _thumbnailSaveTimer.Tick += OnThumbnailSaveTick;
+        _thumbnailSaveTimer.Stop();
+        _thumbnailSaveTimer.Start();
+    }
+
+    private void OnThumbnailSaveTick(object? sender, EventArgs e)
+    {
+        _thumbnailSaveTimer?.Stop();
+        _config.ThumbnailSize = _pendingThumbnailSize;
         _configStore.Save(_config);
-        ApplyFilter();
     }
 
     [RelayCommand]
@@ -168,76 +197,6 @@ public partial class MainViewModel : ViewModelBase
 
     [RelayCommand]
     private void CloseSettings() => IsSettingsOpen = false;
-
-    [RelayCommand]
-    private void CreateCategory(string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return;
-        }
-
-        try
-        {
-            var created = _library.CreateCategory(name.Trim());
-            RebuildCategories();
-            SelectedCategory = Categories.FirstOrDefault(c =>
-                string.Equals(c.Id, created.Id, StringComparison.Ordinal));
-            StatusText = $"已创建分类 {created.Name}";
-            ErrorMessage = null;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
-
-    [RelayCommand]
-    private void RenameCategory(string? newName)
-    {
-        if (SelectedCategory is null || SelectedCategory.IsVirtual || string.IsNullOrWhiteSpace(newName))
-        {
-            return;
-        }
-
-        try
-        {
-            var id = SelectedCategory.Id;
-            _library.RenameCategory(id, newName.Trim());
-            RebuildCategories();
-            SelectedCategory = Categories.FirstOrDefault(c =>
-                string.Equals(c.Name, newName.Trim(), StringComparison.OrdinalIgnoreCase));
-            StatusText = "分类已重命名";
-            ErrorMessage = null;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
-
-    [RelayCommand]
-    private void DeleteCategory(bool deleteFiles)
-    {
-        if (SelectedCategory is null || SelectedCategory.IsVirtual)
-        {
-            return;
-        }
-
-        try
-        {
-            _library.DeleteCategory(SelectedCategory.Id, deleteFiles);
-            RebuildCategories();
-            SelectedCategory = Categories.FirstOrDefault();
-            ApplyFilter();
-            StatusText = "分类已删除";
-            ErrorMessage = null;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
 
     [RelayCommand]
     private async Task ImportPathsAsync(IEnumerable<string>? paths)
@@ -330,7 +289,7 @@ public partial class MainViewModel : ViewModelBase
 
     private void OnHotkeyPressed(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() => _windowChrome.ToggleVisible());
+        Dispatcher.UIThread.Post(_windowChrome.ToggleVisible);
     }
 
     private void RebuildCategories()
@@ -365,10 +324,9 @@ public partial class MainViewModel : ViewModelBase
         var categoryId = SelectedCategory?.Id ?? Category.AllId;
         var results = _library.Query(categoryId, SearchText);
         Stickers.Clear();
-        var select = SelectStickerCommand;
         foreach (var sticker in results)
         {
-            Stickers.Add(new StickerItemViewModel(sticker, ThumbnailSize, select));
+            Stickers.Add(new StickerItemViewModel(sticker, ThumbnailSize, SelectStickerCommand));
         }
 
         StatusText = $"{Stickers.Count} 张表情";

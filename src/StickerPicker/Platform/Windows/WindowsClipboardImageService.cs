@@ -27,7 +27,7 @@ public sealed class WindowsClipboardImageService : IClipboardImageService
         }
 
         var fullPath = Path.GetFullPath(absolutePath);
-        if (!OpenClipboard(IntPtr.Zero))
+        if (!TryOpenClipboard())
         {
             return false;
         }
@@ -54,6 +54,21 @@ public sealed class WindowsClipboardImageService : IClipboardImageService
         {
             CloseClipboard();
         }
+    }
+
+    private static bool TryOpenClipboard()
+    {
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            if (OpenClipboard(IntPtr.Zero))
+            {
+                return true;
+            }
+
+            Thread.Sleep(millisecondsTimeout: 20);
+        }
+
+        return false;
     }
 
     private static IntPtr CreateHdrop(string fullPath)
