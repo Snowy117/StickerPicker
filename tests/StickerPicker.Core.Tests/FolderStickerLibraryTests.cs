@@ -1,6 +1,4 @@
-using StickerPicker.Core.Library;
 using StickerPicker.Core.Models;
-using StickerPicker.Core.Paths;
 
 namespace StickerPicker.Core.Tests;
 
@@ -28,6 +26,106 @@ public sealed class FolderStickerLibraryTests
         Assert.Equal("cats", category.Id);
         Assert.True(Directory.Exists(Path.Combine(fixture.Paths.LibraryRoot, "cats")));
         Assert.Contains(fixture.Library.Categories, c => c.Id == "cats");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("bad/name")]
+    [InlineData("bad\\name")]
+    [InlineData("__all__")]
+    [InlineData("CON")]
+    public void CreateCategory_InvalidNames_Throw(string name)
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        Assert.ThrowsAny<ArgumentException>(() => fixture.Library.CreateCategory(name));
+    }
+
+    [Fact]
+    public void CreateCategory_Duplicate_Throws()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("dup");
+        Assert.Throws<InvalidOperationException>(() => fixture.Library.CreateCategory("dup"));
+    }
+
+    [Fact]
+    public async Task RenameCategory_UpdatesFolderAndMetadataKeys()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("old");
+        var source = fixture.WritePng("a.png");
+        await fixture.Library.ImportAsync([source], "old");
+
+        fixture.Library.RenameCategory("old", "new");
+
+        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "old");
+        Assert.Contains(fixture.Library.Categories, c => c.Id == "new");
+        var sticker = fixture.Library.Stickers.Single();
+        Assert.Equal("new", sticker.CategoryId);
+        Assert.StartsWith("library/new/", sticker.RelativePath, StringComparison.OrdinalIgnoreCase);
+        Assert.True(File.Exists(sticker.AbsolutePath));
+    }
+
+    [Fact]
+    public void RenameCategory_Collision_Throws()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("a");
+        fixture.Library.CreateCategory("b");
+        Assert.Throws<InvalidOperationException>(() => fixture.Library.RenameCategory("a", "b"));
+    }
+
+    [Fact]
+    public void RenameCategory_VirtualAll_Throws()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        Assert.Throws<InvalidOperationException>(() =>
+            fixture.Library.RenameCategory(Category.AllId, "x"));
+    }
+
+    [Fact]
+    public async Task DeleteCategory_NonEmptyWithoutFlag_Throws()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("keep");
+        await fixture.Library.ImportAsync([fixture.WritePng("z.png")], "keep");
+
+        Assert.Throws<InvalidOperationException>(() =>
+            fixture.Library.DeleteCategory("keep", deleteFiles: false));
+    }
+
+    [Fact]
+    public async Task DeleteCategory_WithDeleteFiles_RemovesStickers()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("gone");
+        await fixture.Library.ImportAsync([fixture.WritePng("z.png")], "gone");
+
+        fixture.Library.DeleteCategory("gone", deleteFiles: true);
+
+        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "gone");
+        Assert.Empty(fixture.Library.Stickers);
+        Assert.False(Directory.Exists(Path.Combine(fixture.Paths.LibraryRoot, "gone")));
+    }
+
+    [Fact]
+    public void DeleteCategory_Empty_SucceedsWithoutFlag()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("empty");
+
+        fixture.Library.DeleteCategory("empty", deleteFiles: false);
+
+        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "empty");
     }
 
     [Fact]
@@ -64,6 +162,86 @@ public sealed class FolderStickerLibraryTests
     }
 
     [Fact]
+    public async Task ImportAsync_MultiFileBatch_ImportsAllUnique()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("batch");
+
+        var files = new[]
+        {
+            fixture.WritePng("one.png", 1),
+            fixture.WritePng("two.png", 2),
+            fixture.WritePng("three.png", 3),
+        };
+
+        var result = await fixture.Library.ImportAsync(files, "batch");
+
+        Assert.Equal(3, result.Imported);
+        Assert.Equal(0, result.Duplicates);
+        Assert.Equal(3, fixture.Library.Stickers.Count);
+    }
+
+    [Fact]
+    public async Task ImportAsync_FolderFlatten_IgnoresNestedCategoryStructure()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("flat");
+
+        var folder = Path.Combine(fixture.Root, "tree");
+        var nested = Path.Combine(folder, "sub");
+        Directory.CreateDirectory(nested);
+        File.WriteAllBytes(Path.Combine(folder, "root.png"), LibraryFixture.MinimalPngBytes(10));
+        File.WriteAllBytes(Path.Combine(nested, "nested.png"), LibraryFixture.MinimalPngBytes(11));
+        File.WriteAllText(Path.Combine(nested, "notes.txt"), "skip");
+
+        var result = await fixture.Library.ImportAsync([folder], "flat");
+
+        Assert.Equal(2, result.Imported);
+        Assert.All(fixture.Library.Stickers, s => Assert.Equal("flat", s.CategoryId));
+        Assert.False(Directory.Exists(Path.Combine(fixture.Paths.LibraryRoot, "flat", "sub")));
+    }
+
+    [Fact]
+    public async Task ImportAsync_UnsupportedExtension_IsSkipped()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("ok");
+
+        var txt = fixture.WriteText("x.txt");
+        var png = fixture.WritePng("y.png", 7);
+        var result = await fixture.Library.ImportAsync([txt, png], "ok");
+
+        Assert.Equal(1, result.Imported);
+        Assert.Equal(0, result.Failed);
+        Assert.Single(fixture.Library.Stickers);
+    }
+
+    [Fact]
+    public async Task ImportAsync_FilenameCollision_AddsSuffix()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("col");
+
+        var first = fixture.WritePng("same.png", 1);
+        var altDir = Path.Combine(fixture.Root, "incoming2");
+        Directory.CreateDirectory(altDir);
+        var secondPath = Path.Combine(altDir, "same.png");
+        File.WriteAllBytes(secondPath, LibraryFixture.MinimalPngBytes(99));
+
+        await fixture.Library.ImportAsync([first], "col");
+        await fixture.Library.ImportAsync([secondPath], "col");
+
+        var names = fixture.Library.Stickers.Select(s => s.FileName).OrderBy(n => n).ToList();
+        Assert.Equal(2, names.Count);
+        Assert.Contains("same.png", names);
+        Assert.Contains(names, n => n.StartsWith("same_", StringComparison.Ordinal) && n.EndsWith(".png"));
+    }
+
+    [Fact]
     public async Task Query_FiltersByCategoryAndSearch()
     {
         using var fixture = new LibraryFixture();
@@ -71,8 +249,8 @@ public sealed class FolderStickerLibraryTests
         fixture.Library.CreateCategory("cats");
         fixture.Library.CreateCategory("dogs");
 
-        await fixture.Library.ImportAsync([fixture.WritePng("neko.png")], "cats");
-        await fixture.Library.ImportAsync([fixture.WritePng("inu.png")], "dogs");
+        await fixture.Library.ImportAsync([fixture.WritePng("neko.png", 1)], "cats");
+        await fixture.Library.ImportAsync([fixture.WritePng("inu.png", 2)], "dogs");
 
         var sticker = fixture.Library.Stickers.First(s => s.FileName == "neko.png");
         fixture.Library.SetTags(sticker.RelativePath, ["happy", "猫"]);
@@ -81,6 +259,67 @@ public sealed class FolderStickerLibraryTests
         Assert.Single(fixture.Library.Query(Category.AllId, "neko"));
         Assert.Single(fixture.Library.Query(Category.AllId, "猫"));
         Assert.Empty(fixture.Library.Query("dogs", "neko"));
+    }
+
+    [Fact]
+    public async Task Query_MultiKeyword_UsesAndSemantics()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("tags");
+        await fixture.Library.ImportAsync([fixture.WritePng("alpha.png", 1)], "tags");
+        await fixture.Library.ImportAsync([fixture.WritePng("beta.png", 2)], "tags");
+        var alpha = fixture.Library.Stickers.First(s => s.FileName == "alpha.png");
+        fixture.Library.SetTags(alpha.RelativePath, ["happy", "cat"]);
+
+        Assert.Single(fixture.Library.Query(Category.AllId, "happy cat"));
+        Assert.Empty(fixture.Library.Query(Category.AllId, "happy dog"));
+        Assert.Empty(fixture.Library.Query(Category.AllId, "beta happy"));
+    }
+
+    [Fact]
+    public async Task MoveSticker_ChangesCategoryFolder_AndHashPath()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("from");
+        fixture.Library.CreateCategory("to");
+        await fixture.Library.ImportAsync([fixture.WritePng("m.png")], "from");
+        var sticker = fixture.Library.Stickers.Single();
+        var hash = sticker.Hash;
+        Assert.False(string.IsNullOrEmpty(hash));
+
+        fixture.Library.MoveSticker(sticker.RelativePath, "to");
+
+        var moved = fixture.Library.Stickers.Single();
+        Assert.Equal("to", moved.CategoryId);
+        Assert.Equal(hash, moved.Hash);
+        Assert.StartsWith("library/to/", moved.RelativePath, StringComparison.OrdinalIgnoreCase);
+        Assert.True(File.Exists(moved.AbsolutePath));
+        Assert.False(File.Exists(sticker.AbsolutePath));
+    }
+
+    [Fact]
+    public void MoveSticker_ToVirtualAll_Throws()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        Assert.Throws<InvalidOperationException>(() =>
+            fixture.Library.MoveSticker("library/x/a.png", Category.AllId));
+    }
+
+    [Fact]
+    public void Load_Recovers_FromCorruptMetadata()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Paths.EnsureDataLayout();
+        File.WriteAllText(fixture.Paths.MetadataPath, "!!!");
+        File.WriteAllText(fixture.Paths.HashesPath, "!!!");
+
+        fixture.Library.Refresh();
+
+        Assert.Empty(fixture.Library.Stickers);
+        Assert.True(File.Exists(fixture.Paths.MetadataPath));
     }
 
     [Fact]
@@ -102,108 +341,5 @@ public sealed class FolderStickerLibraryTests
         Assert.Contains(fixture.Library.Categories, c => c.Id == "b");
         Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "a");
         Assert.Equal("b", fixture.Library.Stickers.Single().CategoryId);
-    }
-
-    [Fact]
-    public async Task DeleteCategory_NonEmptyWithoutFlag_Throws()
-    {
-        using var fixture = new LibraryFixture();
-        fixture.Library.Refresh();
-        fixture.Library.CreateCategory("keep");
-        var source = fixture.WritePng("z.png");
-        await fixture.Library.ImportAsync([source], "keep");
-
-        Assert.Throws<InvalidOperationException>(() =>
-            fixture.Library.DeleteCategory("keep", deleteFiles: false));
-    }
-
-    [Fact]
-    public async Task MoveSticker_ChangesCategoryFolder()
-    {
-        using var fixture = new LibraryFixture();
-        fixture.Library.Refresh();
-        fixture.Library.CreateCategory("from");
-        fixture.Library.CreateCategory("to");
-        await fixture.Library.ImportAsync([fixture.WritePng("m.png")], "from");
-        var sticker = fixture.Library.Stickers.Single();
-
-        fixture.Library.MoveSticker(sticker.RelativePath, "to");
-
-        Assert.Equal("to", fixture.Library.Stickers.Single().CategoryId);
-        Assert.True(File.Exists(fixture.Library.Stickers.Single().AbsolutePath));
-    }
-
-    [Fact]
-    public void Load_Recovers_FromCorruptMetadata()
-    {
-        using var fixture = new LibraryFixture();
-        fixture.Paths.EnsureDataLayout();
-        File.WriteAllText(fixture.Paths.MetadataPath, "!!!");
-        File.WriteAllText(fixture.Paths.HashesPath, "!!!");
-
-        fixture.Library.Refresh();
-
-        Assert.Empty(fixture.Library.Stickers);
-        Assert.True(File.Exists(fixture.Paths.MetadataPath));
-    }
-}
-
-internal sealed class LibraryFixture : IDisposable
-{
-    private readonly TempDirectory _temp = new();
-
-    public LibraryFixture()
-    {
-        Paths = new AppPaths(_temp.Path);
-        Library = new FolderStickerLibrary(Paths);
-    }
-
-    public AppPaths Paths { get; }
-    public FolderStickerLibrary Library { get; }
-
-    public string WritePng(string fileName)
-    {
-        var path = Path.Combine(_temp.Path, "incoming");
-        Directory.CreateDirectory(path);
-        var file = Path.Combine(path, fileName);
-        File.WriteAllBytes(file,
-        [
-            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-            0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
-            0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xDD, 0x8D, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E,
-            0x44, 0xAE, 0x42, 0x60, 0x82,
-        ]);
-        return file;
-    }
-
-    public void Dispose() => _temp.Dispose();
-}
-
-internal sealed class TempDirectory : IDisposable
-{
-    public TempDirectory()
-    {
-        Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "StickerPickerTests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(Path);
-    }
-
-    public string Path { get; }
-
-    public void Dispose()
-    {
-        try
-        {
-            if (Directory.Exists(Path))
-            {
-                Directory.Delete(Path, recursive: true);
-            }
-        }
-        catch (IOException)
-        {
-        }
-        catch (UnauthorizedAccessException)
-        {
-        }
     }
 }
