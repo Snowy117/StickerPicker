@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StickerPicker.ViewModels"
+             x:Class="StickerPicker.Controls.StickerTile"
+             x:DataType="vm:StickerItemViewModel">
+  <Border x:Name="Root"
+          Background="{DynamicResource SteamPanelBrush}"
+          BorderBrush="{DynamicResource SteamBorderBrush}"
+          BorderThickness="1"
+          CornerRadius="0"
+          Margin="4"
+          Padding="2"
+          Cursor="Hand"
+          Width="{Binding TileSize}"
+          Height="{Binding TileSize}"
+          PointerPressed="OnPointerPressed"
+          ToolTip.Tip="{Binding FileName}">
+    <Panel>
+      <Image Source="{Binding Thumbnail}"
+             Stretch="Uniform"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center" />
+    </Panel>
+  </Border>
+</UserControl>

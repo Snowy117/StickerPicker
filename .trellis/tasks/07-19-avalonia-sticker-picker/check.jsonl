@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/prd.md", "reason": "Acceptance criteria checklist for quality gate"}
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/design.md", "reason": "Architecture and schema compliance during review"}
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/implement.md", "reason": "Phase done-when criteria and validation commands"}
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/research/windows-platform-notes.md", "reason": "Platform behavior expectations for hotkey/clipboard"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend quality bar (update as conventions land)"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Core quality bar (update as conventions land)"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Nullable and type-safety expectations"}

@@ -1,0 +1,26 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.ncrunch*
+_NCrunch_*
+*.DotSettings.user
+
+## IDE / local
+.idea/
+*.swp
+*~
+
+## Pi / Trellis local runtime (keep tracked intentionally if needed)
+.pi-subagents/
+.trellis/.runtime/
+.trellis/.developer
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store

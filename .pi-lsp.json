@@ -1,0 +1,12 @@
+{
+  "autoStart": ["csharp"],
+  "servers": {
+    "csharp": {
+      "command": "roslyn-language-server",
+      "args": ["--stdio", "--autoLoadProjects"],
+      "settings": {
+        "projects.dotnet_binary_log_path": ""
+      }
+    }
+  }
+}

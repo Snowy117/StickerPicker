@@ -1,0 +1,253 @@
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using Avalonia.Threading;
+using StickerPicker.Core.Abstractions;
+
+namespace StickerPicker.Platform.Windows;
+
+/// <summary>
+/// Win32 RegisterHotKey on a message-only window so hide/show of the main UI does not drop the hotkey.
+/// </summary>
+[SupportedOSPlatform("windows")]
+public sealed class WindowsHotkeyService : IHotkeyService
+{
+    private const int HotkeyId = 0xE001;
+    private const uint ModAlt = 0x0001;
+    private const uint ModControl = 0x0002;
+    private const uint ModShift = 0x0004;
+    private const uint ModWin = 0x0008;
+    private const uint ModNorepeat = 0x4000;
+
+    private bool _registered;
+    private IntPtr _hwnd;
+
+    public event EventHandler? HotkeyPressed;
+
+    public bool Register(string hotkeyGesture)
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return false;
+        }
+
+        if (!TryParseGesture(hotkeyGesture, out var modifiers, out var key))
+        {
+            return false;
+        }
+
+        _hwnd = NativeMessageWindow.Ensure(OnNativeHotkey);
+        if (_hwnd == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        Unregister();
+        _registered = RegisterHotKey(_hwnd, HotkeyId, modifiers | ModNorepeat, key);
+        return _registered;
+    }
+
+    public void Unregister()
+    {
+        if (!_registered || _hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
+        UnregisterHotKey(_hwnd, HotkeyId);
+        _registered = false;
+    }
+
+    public void Dispose() => Unregister();
+
+    private void OnNativeHotkey()
+    {
+        Dispatcher.UIThread.Post(() => HotkeyPressed?.Invoke(this, EventArgs.Empty));
+    }
+
+    internal static bool TryParseGesture(string gesture, out uint modifiers, out uint virtualKey)
+    {
+        modifiers = 0;
+        virtualKey = 0;
+        if (string.IsNullOrWhiteSpace(gesture))
+        {
+            return false;
+        }
+
+        var parts = gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0)
+        {
+            return false;
+        }
+
+        string? keyPart = null;
+        foreach (var part in parts)
+        {
+            switch (part.ToLowerInvariant())
+            {
+                case "ctrl":
+                case "control":
+                    modifiers |= ModControl;
+                    break;
+                case "shift":
+                    modifiers |= ModShift;
+                    break;
+                case "alt":
+                    modifiers |= ModAlt;
+                    break;
+                case "win":
+                case "meta":
+                case "cmd":
+                    modifiers |= ModWin;
+                    break;
+                default:
+                    keyPart = part;
+                    break;
+            }
+        }
+
+        if (keyPart is null)
+        {
+            return false;
+        }
+
+        if (keyPart.Length == 1)
+        {
+            var ch = char.ToUpperInvariant(keyPart[0]);
+            if (ch is >= 'A' and <= 'Z' or >= '0' and <= '9')
+            {
+                virtualKey = ch;
+                return true;
+            }
+        }
+
+        if (keyPart.StartsWith("F", StringComparison.OrdinalIgnoreCase)
+            && int.TryParse(keyPart[1..], out var fn)
+            && fn is >= 1 and <= 24)
+        {
+            virtualKey = 0x70 + (uint)(fn - 1);
+            return true;
+        }
+
+        return false;
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+}
+
+/// <summary>
+/// Hidden message-only window that receives WM_HOTKEY independently of main window visibility.
+/// </summary>
+[SupportedOSPlatform("windows")]
+internal static class NativeMessageWindow
+{
+    private const int WmHotkey = 0x0312;
+    private static IntPtr _hwnd;
+    private static WndProc? _wndProc;
+    private static Action? _onHotkey;
+    private static readonly object Gate = new();
+
+    public static IntPtr Ensure(Action onHotkey)
+    {
+        lock (Gate)
+        {
+            _onHotkey = onHotkey;
+            if (_hwnd != IntPtr.Zero)
+            {
+                return _hwnd;
+            }
+
+            _wndProc = WndProcImpl;
+            var className = "StickerPickerHotkeyHiddenWindow";
+            var wc = new WndClassEx
+            {
+                cbSize = (uint)Marshal.SizeOf<WndClassEx>(),
+                lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_wndProc),
+                hInstance = GetModuleHandle(null),
+                lpszClassName = className,
+            };
+
+            var atom = RegisterClassEx(ref wc);
+            if (atom == 0)
+            {
+                var err = Marshal.GetLastWin32Error();
+                if (err != 1410)
+                {
+                    return IntPtr.Zero;
+                }
+            }
+
+            _hwnd = CreateWindowEx(
+                0,
+                className,
+                "StickerPickerHotkey",
+                0,
+                0, 0, 0, 0,
+                new IntPtr(-3),
+                IntPtr.Zero,
+                wc.hInstance,
+                IntPtr.Zero);
+
+            return _hwnd;
+        }
+    }
+
+    private static IntPtr WndProcImpl(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        if (msg == WmHotkey)
+        {
+            _onHotkey?.Invoke();
+            return IntPtr.Zero;
+        }
+
+        return DefWindowProc(hWnd, msg, wParam, lParam);
+    }
+
+    private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct WndClassEx
+    {
+        public uint cbSize;
+        public uint style;
+        public IntPtr lpfnWndProc;
+        public int cbClsExtra;
+        public int cbWndExtra;
+        public IntPtr hInstance;
+        public IntPtr hIcon;
+        public IntPtr hCursor;
+        public IntPtr hbrBackground;
+        public string? lpszMenuName;
+        public string lpszClassName;
+        public IntPtr hIconSm;
+    }
+
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern ushort RegisterClassEx(ref WndClassEx lpwcx);
+
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern IntPtr CreateWindowEx(
+        int dwExStyle,
+        string lpClassName,
+        string lpWindowName,
+        int dwStyle,
+        int x,
+        int y,
+        int nWidth,
+        int nHeight,
+        IntPtr hWndParent,
+        IntPtr hMenu,
+        IntPtr hInstance,
+        IntPtr lpParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr GetModuleHandle(string? lpModuleName);
+}

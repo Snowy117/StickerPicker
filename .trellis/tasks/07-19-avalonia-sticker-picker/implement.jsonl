@@ -1,0 +1,9 @@
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/prd.md", "reason": "MVP-A requirements, branding, acceptance criteria, out of scope"}
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/design.md", "reason": "Architecture, schema, UI language, Windows services, risks"}
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/implement.md", "reason": "Phased implementation checklist and validation commands"}
+{"file": ".trellis/tasks/07-19-avalonia-sticker-picker/research/windows-platform-notes.md", "reason": "Hotkey/clipboard/tray research and spike checklist"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend guideline index; fill during implementation"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Target for Avalonia project layout conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend/core guideline index; fill for Core services"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Target for Core/storage layout conventions"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "JSON corruption and import failure handling patterns"}

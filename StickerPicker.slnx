@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StickerPicker.Core/StickerPicker.Core.csproj" />
+    <Project Path="src/StickerPicker/StickerPicker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StickerPicker.Core.Tests/StickerPicker.Core.Tests.csproj" />
+  </Folder>
+</Solution>
