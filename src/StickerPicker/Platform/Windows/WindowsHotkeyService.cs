@@ -20,6 +20,7 @@ public sealed class WindowsHotkeyService : IHotkeyService
 
     private bool _registered;
     private IntPtr _hwnd;
+    private string? _activeGesture;
 
     public event EventHandler? HotkeyPressed;
 
@@ -41,9 +42,17 @@ public sealed class WindowsHotkeyService : IHotkeyService
             return false;
         }
 
+        var previousGesture = _activeGesture;
         Unregister();
         _registered = RegisterHotKey(_hwnd, HotkeyId, modifiers | ModNorepeat, key);
-        return _registered;
+        if (_registered)
+        {
+            _activeGesture = hotkeyGesture.Trim();
+            return true;
+        }
+
+        TryRestorePreviousGesture(previousGesture);
+        return false;
     }
 
     public void Unregister()
@@ -55,9 +64,25 @@ public sealed class WindowsHotkeyService : IHotkeyService
 
         UnregisterHotKey(_hwnd, HotkeyId);
         _registered = false;
+        _activeGesture = null;
     }
 
     public void Dispose() => Unregister();
+
+    private void TryRestorePreviousGesture(string? previousGesture)
+    {
+        if (string.IsNullOrWhiteSpace(previousGesture)
+            || !TryParseGesture(previousGesture, out var prevMods, out var prevKey))
+        {
+            return;
+        }
+
+        if (RegisterHotKey(_hwnd, HotkeyId, prevMods | ModNorepeat, prevKey))
+        {
+            _registered = true;
+            _activeGesture = previousGesture;
+        }
+    }
 
     private void OnNativeHotkey()
     {

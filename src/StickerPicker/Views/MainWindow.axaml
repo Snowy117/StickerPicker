@@ -37,9 +37,15 @@
               Margin="0,0,1,0"
               BorderThickness="0,0,1,0">
         <DockPanel>
-          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="4" Margin="6">
-            <Button Content="新建" Click="OnCreateCategoryClick" />
-            <Button Content="刷新" Command="{Binding RefreshLibraryCommand}" />
+          <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="6">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Button Content="新建" Click="OnCreateCategoryClick" />
+              <Button Content="重命名" Click="OnRenameCategoryClick" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Button Content="删除" Click="OnDeleteCategoryClick" />
+              <Button Content="刷新" Command="{Binding RefreshLibraryCommand}" />
+            </StackPanel>
           </StackPanel>
           <ListBox ItemsSource="{Binding Categories}"
                    SelectedItem="{Binding SelectedCategory}"
