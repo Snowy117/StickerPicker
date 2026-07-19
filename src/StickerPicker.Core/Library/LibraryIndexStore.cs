@@ -38,16 +38,18 @@ internal sealed class LibraryIndexStore(IAppPaths paths)
         }
         catch (IOException)
         {
+            // File may be locked or missing mid-scan; leave hash unset.
         }
         catch (UnauthorizedAccessException)
         {
+            // Skip hashing when the process cannot read the file.
         }
 
         var entry = new StickerMetadataEntry
         {
             RelativePath = relative,
             Tags = [],
-            CreatedAt = File.GetCreationTimeUtc(absolutePath),
+            CreatedAt = new DateTimeOffset(File.GetCreationTimeUtc(absolutePath), TimeSpan.Zero),
             Hash = hash,
         };
         Metadata.Stickers[relative] = entry;

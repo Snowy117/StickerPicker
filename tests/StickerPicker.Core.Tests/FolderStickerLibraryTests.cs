@@ -25,7 +25,7 @@ public sealed class FolderStickerLibraryTests
 
         Assert.Equal("cats", category.Id);
         Assert.True(Directory.Exists(Path.Combine(fixture.Paths.LibraryRoot, "cats")));
-        Assert.Contains(fixture.Library.Categories, c => c.Id == "cats");
+        Assert.Contains(fixture.Library.Categories, c => string.Equals(c.Id, "cats", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -62,8 +62,8 @@ public sealed class FolderStickerLibraryTests
 
         fixture.Library.RenameCategory("old", "new");
 
-        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "old");
-        Assert.Contains(fixture.Library.Categories, c => c.Id == "new");
+        Assert.DoesNotContain(fixture.Library.Categories, c => string.Equals(c.Id, "old", StringComparison.Ordinal));
+        Assert.Contains(fixture.Library.Categories, c => string.Equals(c.Id, "new", StringComparison.Ordinal));
         var sticker = fixture.Library.Stickers.Single();
         Assert.Equal("new", sticker.CategoryId);
         Assert.StartsWith("library/new/", sticker.RelativePath, StringComparison.OrdinalIgnoreCase);
@@ -111,7 +111,7 @@ public sealed class FolderStickerLibraryTests
 
         fixture.Library.DeleteCategory("gone", deleteFiles: true);
 
-        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "gone");
+        Assert.DoesNotContain(fixture.Library.Categories, c => string.Equals(c.Id, "gone", StringComparison.Ordinal));
         Assert.Empty(fixture.Library.Stickers);
         Assert.False(Directory.Exists(Path.Combine(fixture.Paths.LibraryRoot, "gone")));
     }
@@ -125,7 +125,7 @@ public sealed class FolderStickerLibraryTests
 
         fixture.Library.DeleteCategory("empty", deleteFiles: false);
 
-        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "empty");
+        Assert.DoesNotContain(fixture.Library.Categories, c => string.Equals(c.Id, "empty", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -235,10 +235,10 @@ public sealed class FolderStickerLibraryTests
         await fixture.Library.ImportAsync([first], "col");
         await fixture.Library.ImportAsync([secondPath], "col");
 
-        var names = fixture.Library.Stickers.Select(s => s.FileName).OrderBy(n => n).ToList();
+        var names = fixture.Library.Stickers.Select(s => s.FileName).Order(StringComparer.Ordinal).ToList();
         Assert.Equal(2, names.Count);
         Assert.Contains("same.png", names);
-        Assert.Contains(names, n => n.StartsWith("same_", StringComparison.Ordinal) && n.EndsWith(".png"));
+        Assert.Contains(names, n => n.StartsWith("same_", StringComparison.Ordinal) && n.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -252,10 +252,10 @@ public sealed class FolderStickerLibraryTests
         await fixture.Library.ImportAsync([fixture.WritePng("neko.png", 1)], "cats");
         await fixture.Library.ImportAsync([fixture.WritePng("inu.png", 2)], "dogs");
 
-        var sticker = fixture.Library.Stickers.First(s => s.FileName == "neko.png");
-        fixture.Library.SetTags(sticker.RelativePath, ["happy", "猫"]);
+        var sticker = fixture.Library.Stickers.First(s => string.Equals(s.FileName, "neko.png", StringComparison.Ordinal));
+        fixture.Library.SetTags(sticker.RelativePath, tags: ["happy", "猫"]);
 
-        Assert.Single(fixture.Library.Query("cats", null));
+        Assert.Single(fixture.Library.Query("cats", searchText: null));
         Assert.Single(fixture.Library.Query(Category.AllId, "neko"));
         Assert.Single(fixture.Library.Query(Category.AllId, "猫"));
         Assert.Empty(fixture.Library.Query("dogs", "neko"));
@@ -269,7 +269,7 @@ public sealed class FolderStickerLibraryTests
         fixture.Library.CreateCategory("tags");
         await fixture.Library.ImportAsync([fixture.WritePng("alpha.png", 1)], "tags");
         await fixture.Library.ImportAsync([fixture.WritePng("beta.png", 2)], "tags");
-        var alpha = fixture.Library.Stickers.First(s => s.FileName == "alpha.png");
+        var alpha = fixture.Library.Stickers.First(s => string.Equals(s.FileName, "alpha.png", StringComparison.Ordinal));
         fixture.Library.SetTags(alpha.RelativePath, ["happy", "cat"]);
 
         Assert.Single(fixture.Library.Query(Category.AllId, "happy cat"));
@@ -338,8 +338,8 @@ public sealed class FolderStickerLibraryTests
 
         fixture.Library.Refresh();
 
-        Assert.Contains(fixture.Library.Categories, c => c.Id == "b");
-        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "a");
+        Assert.Contains(fixture.Library.Categories, c => string.Equals(c.Id, "b", StringComparison.Ordinal));
+        Assert.DoesNotContain(fixture.Library.Categories, c => string.Equals(c.Id, "a", StringComparison.Ordinal));
         Assert.Equal("b", fixture.Library.Stickers.Single().CategoryId);
     }
 }

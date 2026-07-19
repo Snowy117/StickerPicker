@@ -7,17 +7,25 @@ public sealed class NullHotkeyService : IHotkeyService
 {
     public event EventHandler? HotkeyPressed
     {
-        add { }
-        remove { }
+        add
+        {
+            // No subscribers needed on non-Windows hosts.
+        }
+        remove
+        {
+            // No subscribers needed on non-Windows hosts.
+        }
     }
 
     public bool Register(string hotkeyGesture) => false;
 
     public void Unregister()
     {
+        // No-op: nothing registered.
     }
 
     public void Dispose()
     {
+        // No-op: nothing to release.
     }
 }

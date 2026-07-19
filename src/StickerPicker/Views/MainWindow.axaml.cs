@@ -157,7 +157,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        vm.DeleteCategoryCommand.Execute(true);
+        vm.DeleteCategoryCommand.Execute(parameter: true);
     }
 
     private async Task<string?> PromptForNameAsync(string title, string label, string? initial)
@@ -169,7 +169,7 @@ public partial class MainWindow : Window
             Height = 140,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,
-            Content = BuildNameDialog(label, out var box, out var ok),
+            Content = BuildNameDialog(label, box: out var box, ok: out var ok),
         };
 
         if (!string.IsNullOrEmpty(initial))

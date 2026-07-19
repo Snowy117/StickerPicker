@@ -44,7 +44,7 @@ internal sealed class LibraryImporter(IAppPaths paths, LibraryIndexStore index)
 
                 var fileName = Path.GetFileName(source);
                 var destFile = LibraryPathRules.AllocateUniqueFilePath(categoryDir, fileName);
-                File.WriteAllBytes(destFile, bytes);
+                await File.WriteAllBytesAsync(destFile, bytes, cancellationToken).ConfigureAwait(false);
 
                 var relative = LibraryPathRules.ToRelativePath(_paths.DataRoot, destFile);
                 _index.RegisterImported(relative, hash, DateTimeOffset.UtcNow);

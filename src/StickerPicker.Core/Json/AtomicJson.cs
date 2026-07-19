@@ -31,13 +31,8 @@ public static class AtomicJson
         try
         {
             var json = File.ReadAllText(path);
-            var value = JsonSerializer.Deserialize<T>(json, Options);
-            if (value is null)
-            {
-                throw new JsonException("Deserialized null document.");
-            }
-
-            return value;
+            return JsonSerializer.Deserialize<T>(json, Options)
+                ?? throw new JsonException("Deserialized null document.");
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
@@ -81,7 +76,7 @@ public static class AtomicJson
                 return;
             }
 
-            var backup = path + ".corrupt-" + DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
+            var backup = path + ".corrupt-" + DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
             File.Copy(path, backup, overwrite: true);
         }
         catch

@@ -29,75 +29,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
-            var paths = new AppPaths();
-            paths.Resolve();
-            var configStore = new ConfigStore(paths);
-            var library = new FolderStickerLibrary(paths);
-            _windowChrome = new AvaloniaWindowChromeService();
-
-            var clipboard = ServiceFactory.CreateClipboard();
-            _hotkeyService = ServiceFactory.CreateHotkey();
-
-            var mainWindow = new MainWindow();
-            _mainViewModel = new MainViewModel(
-                library,
-                configStore,
-                paths,
-                clipboard,
-                _hotkeyService,
-                _windowChrome);
-
-            mainWindow.DataContext = _mainViewModel;
-            _windowChrome.Attach(mainWindow);
-            desktop.MainWindow = mainWindow;
-
-            ApplyTheme(_mainViewModel.Theme);
-            _mainViewModel.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(MainViewModel.Theme) && _mainViewModel is not null)
-                {
-                    ApplyTheme(_mainViewModel.Theme);
-                }
-            };
-
-            DataContext = this;
-            ShowWindowCommand = new RelayCommand(() => _windowChrome.Show());
-            ExitCommand = new RelayCommand(() =>
-            {
-                _hotkeyService?.Dispose();
-                _windowChrome?.Shutdown();
-            });
-            OpenSettingsCommand = new RelayCommand(() =>
-            {
-                _windowChrome.Show();
-                _mainViewModel.IsSettingsOpen = true;
-            });
-
-            TrayMenu = new NativeMenu();
-            TrayMenu.Items.Add(new NativeMenuItem("显示") { Command = ShowWindowCommand });
-            TrayMenu.Items.Add(new NativeMenuItem("设置") { Command = OpenSettingsCommand });
-            TrayMenu.Items.Add(new NativeMenuItemSeparator());
-            TrayMenu.Items.Add(new NativeMenuItem("退出") { Command = ExitCommand });
-
-            mainWindow.Opened += (_, _) =>
-            {
-                if (_mainViewModel is null || _windowChrome is null)
-                {
-                    return;
-                }
-
-                var config = _mainViewModel.CurrentConfig;
-                if (config.Window.Width > 0 && config.Window.Height > 0)
-                {
-                    mainWindow.Width = config.Window.Width;
-                    mainWindow.Height = config.Window.Height;
-                }
-
-                _mainViewModel.Initialize();
-                _windowChrome.SetTopmost(config.AlwaysOnTop);
-            };
+            ConfigureDesktop(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -107,6 +39,96 @@ public partial class App : Application
     public IRelayCommand? ExitCommand { get; private set; }
     public IRelayCommand? OpenSettingsCommand { get; private set; }
     public NativeMenu? TrayMenu { get; private set; }
+
+    private void ConfigureDesktop(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+        var paths = new AppPaths();
+        paths.Resolve();
+        var configStore = new ConfigStore(paths);
+        var library = new FolderStickerLibrary(paths);
+        _windowChrome = new AvaloniaWindowChromeService();
+
+        var clipboard = ServiceFactory.CreateClipboard();
+        _hotkeyService = ServiceFactory.CreateHotkey();
+
+        var mainWindow = new MainWindow();
+        _mainViewModel = new MainViewModel(
+            library,
+            configStore,
+            paths,
+            clipboard,
+            _hotkeyService,
+            _windowChrome);
+
+        mainWindow.DataContext = _mainViewModel;
+        _windowChrome.Attach(mainWindow);
+        desktop.MainWindow = mainWindow;
+
+        ApplyTheme(_mainViewModel.Theme);
+        _mainViewModel.PropertyChanged += OnMainViewModelPropertyChanged;
+
+        DataContext = this;
+        WireTrayCommands();
+        WireMainWindowOpened(mainWindow);
+    }
+
+    private void WireTrayCommands()
+    {
+        ShowWindowCommand = new RelayCommand(() => _windowChrome?.Show());
+        ExitCommand = new RelayCommand(() =>
+        {
+            _hotkeyService?.Dispose();
+            _windowChrome?.Shutdown();
+        });
+        OpenSettingsCommand = new RelayCommand(() =>
+        {
+            _windowChrome?.Show();
+            if (_mainViewModel is { } vm)
+            {
+                vm.IsSettingsOpen = true;
+            }
+        });
+
+        TrayMenu =
+        [
+            new NativeMenuItem("显示") { Command = ShowWindowCommand },
+            new NativeMenuItem("设置") { Command = OpenSettingsCommand },
+            new NativeMenuItemSeparator(),
+            new NativeMenuItem("退出") { Command = ExitCommand },
+        ];
+    }
+
+    private void WireMainWindowOpened(MainWindow mainWindow)
+    {
+        mainWindow.Opened += (_, _) =>
+        {
+            if (_mainViewModel is null || _windowChrome is null)
+            {
+                return;
+            }
+
+            var config = _mainViewModel.CurrentConfig;
+            if (config.Window.Width > 0 && config.Window.Height > 0)
+            {
+                mainWindow.Width = config.Window.Width;
+                mainWindow.Height = config.Window.Height;
+            }
+
+            _mainViewModel.Initialize();
+            _windowChrome.SetTopmost(config.AlwaysOnTop);
+        };
+    }
+
+    private void OnMainViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (string.Equals(e.PropertyName, nameof(MainViewModel.Theme), StringComparison.Ordinal)
+            && _mainViewModel is not null)
+        {
+            ApplyTheme(_mainViewModel.Theme);
+        }
+    }
 
     private void ApplyTheme(string theme)
     {
@@ -131,6 +153,11 @@ public partial class App : Application
             useDark = false;
         }
 
+        ApplySteamBrushes(resources, useDark);
+    }
+
+    private void ApplySteamBrushes(ResourceDictionary resources, bool useDark)
+    {
         void SetBrush(string key, string colorKey)
         {
             if (TryGetResource(colorKey, ActualThemeVariant, out var colorObj)

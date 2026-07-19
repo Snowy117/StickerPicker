@@ -10,7 +10,7 @@ internal static class LibraryPathRules
         ".png", ".jpg", ".jpeg", ".gif", ".webp",
     };
 
-    private static readonly HashSet<string> ReservedCategoryNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> s_reservedCategoryNames = new(StringComparer.OrdinalIgnoreCase)
     {
         ".", "..", "CON", "PRN", "AUX", "NUL",
         "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
@@ -29,13 +29,13 @@ internal static class LibraryPathRules
 
         var trimmed = name.Trim();
         if (trimmed.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
-            || trimmed.Contains('/')
-            || trimmed.Contains('\\'))
+            || trimmed.Contains('/', StringComparison.Ordinal)
+            || trimmed.Contains('\\', StringComparison.Ordinal))
         {
             throw new ArgumentException("分类名包含非法字符。", nameof(name));
         }
 
-        if (ReservedCategoryNames.Contains(trimmed)
+        if (s_reservedCategoryNames.Contains(trimmed)
             || string.Equals(trimmed, Category.AllId, StringComparison.Ordinal))
         {
             throw new ArgumentException("分类名被保留。", nameof(name));
@@ -90,7 +90,9 @@ internal static class LibraryPathRules
         var ext = Path.GetExtension(safeName);
         for (var i = 1; i < 10_000; i++)
         {
-            var candidate = Path.Combine(categoryDirectory, $"{name}_{i}{ext}");
+            var candidate = Path.Combine(
+                categoryDirectory,
+                string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{name}_{i}{ext}"));
             if (!File.Exists(candidate))
             {
                 return candidate;
@@ -106,12 +108,10 @@ internal static class LibraryPathRules
         {
             if (Directory.Exists(path))
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                             .Where(IsSupportedImage))
                 {
-                    if (IsSupportedImage(file))
-                    {
-                        yield return file;
-                    }
+                    yield return file;
                 }
             }
             else if (File.Exists(path) && IsSupportedImage(path))
@@ -141,7 +141,7 @@ internal static class LibraryPathRules
         string? categoryId,
         string? searchText)
     {
-        IEnumerable<Sticker> query = stickers;
+        var query = stickers.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(categoryId)
             && !string.Equals(categoryId, Category.AllId, StringComparison.Ordinal))

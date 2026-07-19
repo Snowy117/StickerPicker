@@ -37,21 +37,15 @@ public sealed class WindowsClipboardImageService : IClipboardImageService
             EmptyClipboard();
 
             var hdrop = CreateHdrop(fullPath);
-            if (hdrop != IntPtr.Zero)
+            if (hdrop != IntPtr.Zero && SetClipboardData(CfHdrop, hdrop) == IntPtr.Zero)
             {
-                if (SetClipboardData(CfHdrop, hdrop) == IntPtr.Zero)
-                {
-                    GlobalFree(hdrop);
-                }
+                GlobalFree(hdrop);
             }
 
             var dib = TryCreateDib(fullPath);
-            if (dib != IntPtr.Zero)
+            if (dib != IntPtr.Zero && SetClipboardData(CfDib, dib) == IntPtr.Zero)
             {
-                if (SetClipboardData(CfDib, dib) == IntPtr.Zero)
-                {
-                    GlobalFree(dib);
-                }
+                GlobalFree(dib);
             }
 
             return hdrop != IntPtr.Zero || dib != IntPtr.Zero;
@@ -89,7 +83,7 @@ public sealed class WindowsClipboardImageService : IClipboardImageService
                 fNC = false,
                 fWide = true,
             };
-            Marshal.StructureToPtr(drop, ptr, false);
+            Marshal.StructureToPtr(drop, ptr, fDeleteOld: false);
             Marshal.Copy(pathBytes, 0, ptr + dropFilesSize, pathBytes.Length);
         }
         finally

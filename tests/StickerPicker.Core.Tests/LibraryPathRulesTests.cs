@@ -25,7 +25,7 @@ public sealed class LibraryPathRulesTests
         var raw = $"a{invalid}b.png";
         var sanitized = LibraryPathRules.SanitizeFileName(raw);
         Assert.DoesNotContain(invalid, sanitized);
-        Assert.EndsWith(".png", sanitized);
+        Assert.EndsWith(".png", sanitized, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class LibraryPathRulesTests
 
         var expanded = LibraryPathRules.ExpandSourceFiles([dir]).ToList();
         Assert.Single(expanded);
-        Assert.EndsWith("a.png", expanded[0]);
+        Assert.EndsWith("a.png", expanded[0], StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

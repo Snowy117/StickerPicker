@@ -104,7 +104,19 @@ public sealed class WindowsHotkeyService : IHotkeyService
             return false;
         }
 
-        string? keyPart = null;
+        if (!TrySplitModifiersAndKey(parts, out modifiers, out var keyPart))
+        {
+            return false;
+        }
+
+        return TryMapKeyToken(keyPart, out virtualKey);
+    }
+
+    private static bool TrySplitModifiersAndKey(string[] parts, out uint modifiers, out string keyPart)
+    {
+        modifiers = 0;
+        keyPart = "";
+        string? foundKey = null;
         foreach (var part in parts)
         {
             switch (part.ToLowerInvariant())
@@ -125,16 +137,23 @@ public sealed class WindowsHotkeyService : IHotkeyService
                     modifiers |= ModWin;
                     break;
                 default:
-                    keyPart = part;
+                    foundKey = part;
                     break;
             }
         }
 
-        if (keyPart is null)
+        if (foundKey is null)
         {
             return false;
         }
 
+        keyPart = foundKey;
+        return true;
+    }
+
+    private static bool TryMapKeyToken(string keyPart, out uint virtualKey)
+    {
+        virtualKey = 0;
         if (keyPart.Length == 1)
         {
             var ch = char.ToUpperInvariant(keyPart[0]);
@@ -145,15 +164,19 @@ public sealed class WindowsHotkeyService : IHotkeyService
             }
         }
 
-        if (keyPart.StartsWith("F", StringComparison.OrdinalIgnoreCase)
-            && int.TryParse(keyPart[1..], out var fn)
-            && fn is >= 1 and <= 24)
+        if (!keyPart.StartsWith("F", StringComparison.OrdinalIgnoreCase)
+            || !int.TryParse(
+                keyPart[1..],
+                System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var fn)
+            || fn is < 1 or > 24)
         {
-            virtualKey = 0x70 + (uint)(fn - 1);
-            return true;
+            return false;
         }
 
-        return false;
+        virtualKey = 0x70 + (uint)(fn - 1);
+        return true;
     }
 
     [DllImport("user32.dll", SetLastError = true)]
@@ -175,7 +198,7 @@ internal static class NativeMessageWindow
     private static IntPtr _hwnd;
     private static WndProc? _wndProc;
     private static Action? _onHotkey;
-    private static readonly object Gate = new();
+    private static readonly Lock Gate = new();
 
     public static IntPtr Ensure(Action onHotkey)
     {
@@ -188,12 +211,12 @@ internal static class NativeMessageWindow
             }
 
             _wndProc = WndProcImpl;
-            var className = "StickerPickerHotkeyHiddenWindow";
+            const string className = "StickerPickerHotkeyHiddenWindow";
             var wc = new WndClassEx
             {
                 cbSize = (uint)Marshal.SizeOf<WndClassEx>(),
                 lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_wndProc),
-                hInstance = GetModuleHandle(null),
+                hInstance = GetModuleHandle(lpModuleName: null),
                 lpszClassName = className,
             };
 

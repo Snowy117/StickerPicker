@@ -13,7 +13,8 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IWindowChromeService _windowChrome;
     private readonly Action _onDataRootChanged;
     private readonly Action<AppConfig> _onConfigApplied;
-    private AppConfig _config;
+    private readonly AppConfig _config;
+    private readonly bool _isReady;
 
     public SettingsViewModel(
         IConfigStore configStore,
@@ -31,11 +32,13 @@ public partial class SettingsViewModel : ViewModelBase
         _onDataRootChanged = onDataRootChanged;
         _onConfigApplied = onConfigApplied;
         _config = config.Clone();
+
         Theme = _config.Theme;
         AlwaysOnTop = _config.AlwaysOnTop;
         Hotkey = _config.Hotkey;
         DataRootDisplay = _paths.DataRoot;
         StatusMessage = "";
+        _isReady = true;
     }
 
     public IReadOnlyList<string> ThemeOptions { get; } = ["system", "dark", "light"];
@@ -58,8 +61,23 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool CopyOnMigrate { get; set; } = true;
 
-    partial void OnThemeChanged(string value) => ApplyAndSave();
-    partial void OnAlwaysOnTopChanged(bool value) => ApplyAndSave();
+    partial void OnThemeChanged(string value)
+    {
+        _ = value;
+        if (_isReady)
+        {
+            ApplyAndSave();
+        }
+    }
+
+    partial void OnAlwaysOnTopChanged(bool value)
+    {
+        _ = value;
+        if (_isReady)
+        {
+            ApplyAndSave();
+        }
+    }
 
     [RelayCommand]
     private void SaveHotkey()
@@ -87,7 +105,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         try
         {
-            _paths.SetDataRoot(null);
+            _paths.SetDataRoot(customDataRoot: null);
             DataRootDisplay = _paths.DataRoot;
             _config.DataRoot = null;
             Persist();

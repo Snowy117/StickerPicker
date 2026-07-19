@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using StickerPicker.ViewModels;
 
 namespace StickerPicker.Controls;
@@ -19,9 +18,9 @@ public partial class StickerTile : UserControl
             return;
         }
 
-        if (DataContext is StickerItemViewModel item && item.SelectCommand.CanExecute(null))
+        if (DataContext is StickerItemViewModel item && item.SelectCommand.CanExecute(parameter: null))
         {
-            item.SelectCommand.Execute(null);
+            item.SelectCommand.Execute(parameter: null);
             e.Handled = true;
         }
     }

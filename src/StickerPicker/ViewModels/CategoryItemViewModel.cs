@@ -3,22 +3,18 @@ using StickerPicker.Core.Models;
 
 namespace StickerPicker.ViewModels;
 
-public partial class CategoryItemViewModel : ViewModelBase
+public partial class CategoryItemViewModel(Category category) : ViewModelBase
 {
-    public CategoryItemViewModel(Category category)
-    {
-        Id = category.Id;
-        Name = category.Name;
-        IsVirtual = category.IsVirtual;
-        StickerCount = category.StickerCount;
-    }
-
-    public string Id { get; }
-    public string Name { get; }
-    public bool IsVirtual { get; }
+    public string Id { get; } = category.Id;
+    public string Name { get; } = category.Name;
+    public bool IsVirtual { get; } = category.IsVirtual;
 
     [ObservableProperty]
-    public partial int StickerCount { get; set; }
+    public partial int StickerCount { get; set; } = category.StickerCount;
 
-    public string DisplayName => IsVirtual ? Name : $"{Name} ({StickerCount})";
+    public string DisplayName => IsVirtual
+        ? Name
+        : string.Create(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"{Name} ({StickerCount})");
 }

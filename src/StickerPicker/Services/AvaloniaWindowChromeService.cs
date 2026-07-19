@@ -73,9 +73,9 @@ public sealed class AvaloniaWindowChromeService : IWindowChromeService
     {
         RunOnUi(() =>
         {
-            if (_window is not null)
+            if (_window is { } window)
             {
-                _window.Topmost = topmost;
+                window.Topmost = topmost;
             }
         });
     }

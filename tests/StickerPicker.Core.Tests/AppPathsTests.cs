@@ -41,7 +41,7 @@ public sealed class AppPathsTests
         var paths = new AppPaths(temp.Path);
         paths.SetDataRoot(custom);
 
-        paths.SetDataRoot(null);
+        paths.SetDataRoot(customDataRoot: null);
 
         Assert.False(File.Exists(paths.BootstrapPath));
         Assert.Equal(Path.GetFullPath(temp.Path), paths.DataRoot);

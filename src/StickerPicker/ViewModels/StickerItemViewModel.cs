@@ -5,32 +5,20 @@ using StickerPicker.Core.Models;
 
 namespace StickerPicker.ViewModels;
 
-public partial class StickerItemViewModel : ViewModelBase
+public partial class StickerItemViewModel(Sticker sticker, double tileSize, ICommand selectCommand) : ViewModelBase
 {
-    public StickerItemViewModel(Sticker sticker, double tileSize, ICommand selectCommand)
-    {
-        Sticker = sticker;
-        RelativePath = sticker.RelativePath;
-        AbsolutePath = sticker.AbsolutePath;
-        FileName = sticker.FileName;
-        CategoryId = sticker.CategoryId;
-        TileSize = tileSize;
-        SelectCommand = selectCommand;
-        Thumbnail = TryLoadThumbnail(sticker.AbsolutePath, (int)tileSize);
-    }
-
-    public Sticker Sticker { get; }
-    public string RelativePath { get; }
-    public string AbsolutePath { get; }
-    public string FileName { get; }
-    public string CategoryId { get; }
-    public ICommand SelectCommand { get; }
+    public Sticker Sticker { get; } = sticker;
+    public string RelativePath { get; } = sticker.RelativePath;
+    public string AbsolutePath { get; } = sticker.AbsolutePath;
+    public string FileName { get; } = sticker.FileName;
+    public string CategoryId { get; } = sticker.CategoryId;
+    public ICommand SelectCommand { get; } = selectCommand;
 
     [ObservableProperty]
-    public partial double TileSize { get; set; }
+    public partial double TileSize { get; set; } = tileSize;
 
     [ObservableProperty]
-    public partial Bitmap? Thumbnail { get; set; }
+    public partial Bitmap? Thumbnail { get; set; } = TryLoadThumbnail(sticker.AbsolutePath, (int)tileSize);
 
     private static Bitmap? TryLoadThumbnail(string path, int decodeSize)
     {

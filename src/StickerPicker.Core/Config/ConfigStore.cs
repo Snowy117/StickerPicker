@@ -4,14 +4,9 @@ using StickerPicker.Core.Models;
 
 namespace StickerPicker.Core.Config;
 
-public sealed class ConfigStore : IConfigStore
+public sealed class ConfigStore(IAppPaths paths) : IConfigStore
 {
-    private readonly IAppPaths _paths;
-
-    public ConfigStore(IAppPaths paths)
-    {
-        _paths = paths;
-    }
+    private readonly IAppPaths _paths = paths;
 
     public AppConfig Load()
     {

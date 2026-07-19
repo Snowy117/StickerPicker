@@ -17,6 +17,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly IWindowChromeService _windowChrome;
     private AppConfig _config;
     private bool _suppressCategoryChange;
+    private readonly bool _isReady;
 
     public MainViewModel(
         IStickerLibrary library,
@@ -33,6 +34,7 @@ public partial class MainViewModel : ViewModelBase
         _hotkeyService = hotkeyService;
         _windowChrome = windowChrome;
         _config = _configStore.Load();
+
         ThumbnailSize = _config.ThumbnailSize;
         AlwaysOnTop = _config.AlwaysOnTop;
         Theme = _config.Theme;
@@ -46,27 +48,22 @@ public partial class MainViewModel : ViewModelBase
             onDataRootChanged: ReloadLibrary,
             onConfigApplied: ApplyConfigFromSettings);
 
-        Categories = [];
-        Stickers = [];
-        SelectedCategory = null;
-        SearchText = "";
-        StatusText = "就绪";
-        IsSettingsOpen = false;
+        _isReady = true;
     }
 
     public SettingsViewModel Settings { get; }
 
-    public ObservableCollection<CategoryItemViewModel> Categories { get; }
-    public ObservableCollection<StickerItemViewModel> Stickers { get; }
+    public ObservableCollection<CategoryItemViewModel> Categories { get; } = [];
+    public ObservableCollection<StickerItemViewModel> Stickers { get; } = [];
 
     [ObservableProperty]
     public partial CategoryItemViewModel? SelectedCategory { get; set; }
 
     [ObservableProperty]
-    public partial string SearchText { get; set; }
+    public partial string SearchText { get; set; } = "";
 
     [ObservableProperty]
-    public partial string StatusText { get; set; }
+    public partial string StatusText { get; set; } = "就绪";
 
     [ObservableProperty]
     public partial double ThumbnailSize { get; set; }
@@ -115,11 +112,21 @@ public partial class MainViewModel : ViewModelBase
 
     public AppConfig CurrentConfig => _config.Clone();
 
-    partial void OnSearchTextChanged(string value) => ApplyFilter();
+    partial void OnSearchTextChanged(string value)
+    {
+        _ = value;
+        if (!_isReady)
+        {
+            return;
+        }
+
+        ApplyFilter();
+    }
 
     partial void OnSelectedCategoryChanged(CategoryItemViewModel? value)
     {
-        if (_suppressCategoryChange)
+        _ = value;
+        if (!_isReady || _suppressCategoryChange)
         {
             return;
         }
@@ -129,6 +136,11 @@ public partial class MainViewModel : ViewModelBase
 
     partial void OnThumbnailSizeChanged(double value)
     {
+        if (!_isReady)
+        {
+            return;
+        }
+
         _config.ThumbnailSize = value;
         _configStore.Save(_config);
         ApplyFilter();
@@ -169,7 +181,8 @@ public partial class MainViewModel : ViewModelBase
         {
             var created = _library.CreateCategory(name.Trim());
             RebuildCategories();
-            SelectedCategory = Categories.FirstOrDefault(c => c.Id == created.Id);
+            SelectedCategory = Categories.FirstOrDefault(c =>
+                string.Equals(c.Id, created.Id, StringComparison.Ordinal));
             StatusText = $"已创建分类 {created.Name}";
             ErrorMessage = null;
         }
@@ -332,7 +345,8 @@ public partial class MainViewModel : ViewModelBase
                 Categories.Add(new CategoryItemViewModel(category));
             }
 
-            SelectedCategory = Categories.FirstOrDefault(c => c.Id == previousId)
+            SelectedCategory = Categories.FirstOrDefault(c =>
+                    string.Equals(c.Id, previousId, StringComparison.Ordinal))
                 ?? Categories.FirstOrDefault();
         }
         finally
@@ -343,6 +357,11 @@ public partial class MainViewModel : ViewModelBase
 
     private void ApplyFilter()
     {
+        if (!_isReady)
+        {
+            return;
+        }
+
         var categoryId = SelectedCategory?.Id ?? Category.AllId;
         var results = _library.Query(categoryId, SearchText);
         Stickers.Clear();

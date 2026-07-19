@@ -19,7 +19,7 @@ public sealed class LibraryIntegrationTests
             [fixture.WritePng("neko.png", 1), fixture.WritePng("doggo.png", 2)],
             "cats");
 
-        Assert.Equal(2, fixture.Library.Query("cats", null).Count);
+        Assert.Equal(2, fixture.Library.Query("cats", searchText: null).Count);
 
         var catsDir = Path.Combine(fixture.Paths.LibraryRoot, "cats");
         var petsDir = Path.Combine(fixture.Paths.LibraryRoot, "pets");
@@ -30,12 +30,12 @@ public sealed class LibraryIntegrationTests
 
         fixture.Library.Refresh();
 
-        Assert.Contains(fixture.Library.Categories, c => c.Id == "pets");
-        Assert.DoesNotContain(fixture.Library.Categories, c => c.Id == "cats");
-        Assert.Single(fixture.Library.Query("pets", null));
-        Assert.Single(fixture.Library.Query("dogs", null));
+        Assert.Contains(fixture.Library.Categories, c => string.Equals(c.Id, "pets", StringComparison.Ordinal));
+        Assert.DoesNotContain(fixture.Library.Categories, c => string.Equals(c.Id, "cats", StringComparison.Ordinal));
+        Assert.Single(fixture.Library.Query("pets", searchText: null));
+        Assert.Single(fixture.Library.Query("dogs", searchText: null));
         Assert.Equal(2, fixture.Library.Stickers.Count);
-        Assert.All(fixture.Library.Stickers, s => Assert.True(File.Exists(s.AbsolutePath)));
+        Assert.All(fixture.Library.Stickers, sticker => Assert.True(File.Exists(sticker.AbsolutePath)));
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class LibraryIntegrationTests
             "beta");
         Assert.Single(library.Stickers);
         Assert.Equal("beta", library.Stickers[0].CategoryId);
-        Assert.StartsWith(Path.GetFullPath(portableRoot), library.Stickers[0].AbsolutePath);
+        Assert.StartsWith(Path.GetFullPath(portableRoot), library.Stickers[0].AbsolutePath, StringComparison.OrdinalIgnoreCase);
 
         var reloadedPaths = new AppPaths(defaultRoot);
         var reloadedLibrary = new FolderStickerLibrary(reloadedPaths);
@@ -85,22 +85,24 @@ public sealed class LibraryIntegrationTests
         for (var i = 0; i < 5; i++)
         {
             var result = await fixture.Library.ImportAsync(
-                [fixture.WritePng($"n{i}.png", (byte)(i + 1))],
+                [fixture.WritePng(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"n{i}.png"), (byte)(i + 1))],
                 "seq");
             Assert.Equal(1, result.Imported);
         }
 
         for (var i = 0; i < 5; i++)
         {
-            var path = fixture.WritePng($"dup{i}.png", (byte)(i + 1));
+            var path = fixture.WritePng(
+                string.Create(System.Globalization.CultureInfo.InvariantCulture, $"dup{i}.png"),
+                (byte)(i + 1));
             var result = await fixture.Library.ImportAsync([path], "seq");
             Assert.Equal(1, result.Duplicates);
         }
 
         fixture.Library.Refresh();
         Assert.Equal(5, fixture.Library.Stickers.Count);
-        Assert.Equal(5, fixture.Library.Categories.First(c => c.Id == "seq").StickerCount);
-        Assert.Equal(5, fixture.Library.Query("seq", null).Count);
+        Assert.Equal(5, fixture.Library.Categories.First(c => string.Equals(c.Id, "seq", StringComparison.Ordinal)).StickerCount);
+        Assert.Equal(5, fixture.Library.Query("seq", searchText: null).Count);
     }
 
     [Fact]
