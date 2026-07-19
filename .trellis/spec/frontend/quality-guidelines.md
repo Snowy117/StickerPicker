@@ -1,51 +1,35 @@
-# Quality Guidelines
+# Quality Guidelines (Desktop UI)
 
-> Code quality standards for frontend development.
+> Standards for Avalonia UI project.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's quality standards here.
-
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
-
-(To be filled by the team)
+UI is thin: bind ViewModels to Core seams; platform adapters implement OS behavior.
 
 ---
 
-## Forbidden Patterns
+## Required
 
-<!-- Patterns that should never be used and why -->
-
-(To be filled by the team)
-
----
-
-## Required Patterns
-
-<!-- Patterns that must always be used -->
-
-(To be filled by the team)
+- Steam-like: **no corner radius**, restrained animation, dark palette inspired by Steam greys/blues.
+- Click sticker → clipboard (file drop + bitmap when possible) → **hide** window.
+- Tray residency; hotkey toggle show/hide (Windows).
+- Settings persist theme, topmost, hotkey, data root via Core config/paths.
+- C# files **&lt; 400 lines**.
 
 ---
 
-## Testing Requirements
+## Forbidden
 
-<!-- What level of testing is expected -->
-
-(To be filled by the team)
+- Reimplementing library scan/import in ViewModels
+- Calling Win32 from ViewModels (use `IHotkeyService` / `IClipboardImageService`)
+- Exiting app on window close
 
 ---
 
-## Code Review Checklist
+## Known residual risks (document, don’t hide)
 
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+- Non-BMP DIB fallback is limited; chat apps primarily use file drop for GIF.
+- Grid not virtualized yet — large libraries may need ItemsRepeater later.
+- Manual Windows verification required for QQ/WeChat paste.

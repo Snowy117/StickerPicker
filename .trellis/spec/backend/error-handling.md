@@ -1,51 +1,54 @@
-# Error Handling
+# Error Handling (Core)
 
-> How errors are handled in this project.
+> Persistence and import failure contracts.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's error handling conventions here.
-
-Questions to answer:
-- What error types do you define?
-- How are errors propagated?
-- How are errors logged?
-- How are errors returned to clients?
--->
-
-(To be filled by the team)
+Library and config IO must not leave empty/corrupt files as the only copy of truth.
 
 ---
 
-## Error Types
+## Patterns
 
-<!-- Custom error classes/types -->
+### Atomic JSON write
 
-(To be filled by the team)
+1. Serialize to `{path}.tmp` (or unique temp beside target)
+2. Flush
+3. Replace/move over target
+
+### Corrupt JSON on load
+
+1. Move/copy bad file to `*.bak-{timestamp}` (or similar)
+2. Recreate empty default document
+3. Continue; do not crash app startup if recoverable
+
+### Import batch
+
+- Per-file failures increment `Failed` and continue
+- Duplicates (hash hit) increment `Duplicates` and skip copy
+- Return `ImportResult` with counts; UI shows short Chinese status
+
+### Category delete
+
+- Policy enforced in library: non-empty delete requires explicit `deleteFiles` confirmation from UI
 
 ---
 
-## Error Handling Patterns
+## Validation matrix
 
-<!-- Try-catch patterns, error propagation -->
-
-(To be filled by the team)
-
----
-
-## API Error Responses
-
-<!-- Standard error response format -->
-
-(To be filled by the team)
+| Case | Expected |
+|------|----------|
+| Good import | files under `library/{cat}/`, metadata+hashes updated |
+| Duplicate bytes | skipped, hashes unchanged for new id |
+| Corrupt metadata.json | backup + empty, Refresh still lists FS files |
+| Invalid category name | throw/reject before creating path |
 
 ---
 
-## Common Mistakes
+## Tests required
 
-<!-- Error handling mistakes your team has made -->
-
-(To be filled by the team)
+- AtomicJson round-trip + corrupt recovery
+- Import duplicate / collision suffix
+- Explorer move + Refresh integration

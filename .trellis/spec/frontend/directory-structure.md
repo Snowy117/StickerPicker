@@ -1,54 +1,57 @@
-# Directory Structure
+# Directory Structure (Desktop UI)
 
-> How frontend code is organized in this project.
+> How Avalonia UI code is organized in StickerPicker.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's frontend directory structure here.
-
-Questions to answer:
-- Where do components live?
-- How are features/modules organized?
-- Where are shared utilities?
-- How are assets organized?
--->
-
-(To be filled by the team)
+`src/StickerPicker` is the Avalonia Desktop host. It depends on `StickerPicker.Core` and must not reimplement library IO.
 
 ---
 
 ## Directory Layout
 
+```text
+src/StickerPicker/
+├── App.axaml(.cs)         # DI/composition, tray, lifecycle
+├── Program.cs
+├── Views/                 # MainWindow shell
+├── ViewModels/            # CommunityToolkit MVVM
+├── Controls/              # Custom controls (e.g. StickerTile)
+├── Themes/                # Steam-like (CornerRadius=0) styles
+├── Platform/Windows/      # Win32 adapters (clipboard, hotkey)
+└── Services/              # AvaloniaWindowChrome + null stubs
 ```
-<!-- Replace with your actual structure -->
-src/
-├── ...
-└── ...
-```
+
+Solution file: **`StickerPicker.slnx`** (not classic `.sln`).
 
 ---
 
 ## Module Organization
 
-<!-- How should new features be organized? -->
+| Layer | Depends on |
+|-------|------------|
+| Views | ViewModels, Controls, Themes |
+| ViewModels | Core abstractions only |
+| Platform/Windows | Core seams (`IClipboardImageService`, `IHotkeyService`) |
 
-(To be filled by the team)
+**Hard rules**
+
+- Every C# file **&lt; 400 lines** (split collaborators before growing `MainViewModel`).
+- OS-specific code stays under `Platform/` or null stubs in `Services/`.
+- Close main window = **Hide**; exit only via tray/explicit shutdown.
 
 ---
 
 ## Naming Conventions
 
-<!-- File and folder naming rules -->
-
-(To be filled by the team)
+- `*ViewModel`, `*Service`, Windows types prefixed `Windows*`
+- Product / window title / AppData folder: `StickerPicker`
 
 ---
 
 ## Examples
 
-<!-- Link to well-organized modules as examples -->
-
-(To be filled by the team)
+- Composition root: `Services/ServiceFactory.cs`, `App.axaml.cs`
+- Steam styles: `Themes/SteamStyles.axaml`

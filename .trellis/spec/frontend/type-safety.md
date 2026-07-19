@@ -1,51 +1,33 @@
 # Type Safety
 
-> Type safety patterns in this project.
+> Nullable and typing conventions for StickerPicker.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's type safety conventions here.
-
-Questions to answer:
-- What type system do you use?
-- How are types organized?
-- What validation library do you use?
-- How do you handle type inference?
--->
-
-(To be filled by the team)
+All projects use `<Nullable>enable</Nullable>` and modern C# (`net10.0`). Prefer expressive nullability over `!`.
 
 ---
 
-## Type Organization
+## Rules
 
-<!-- Where types are defined, shared types vs local types -->
-
-(To be filled by the team)
-
----
-
-## Validation
-
-<!-- Runtime validation patterns (Zod, Yup, io-ts, etc.) -->
-
-(To be filled by the team)
-
----
-
-## Common Patterns
-
-<!-- Type utilities, generics, type guards -->
-
-(To be filled by the team)
+1. **Enable nullable** on every project; do not disable for convenience.
+2. **Avoid null-forgiving `!`** except at true platform boundaries (e.g. file picker local path after null check).
+3. Prefer `string?`, early return, and `ArgumentNullException.ThrowIfNull` over silent defaults.
+4. Core models should use required/init properties where values are always present after load.
+5. Cross-seam DTOs (`ImportResult`, `Sticker`, `Category`) stay immutable-friendly.
 
 ---
 
 ## Forbidden Patterns
 
-<!-- any, type assertions, etc. -->
+- `!` to silence analyzer noise without proving non-null
+- Catch-all `catch` that swallows without user/log signal for user-facing ops
+- Putting Avalonia types into Core “for convenience”
 
-(To be filled by the team)
+---
+
+## File size
+
+Keep each `.cs` file under **400 lines**. Split internal collaborators rather than growing god classes.
