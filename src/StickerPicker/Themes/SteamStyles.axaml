@@ -107,7 +107,7 @@
     <Setter Property="LetterSpacing" Value="0.3" />
   </Style>
   <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="0 1px 0 0 #ffffff44" />
+    <Setter Property="BoxShadow" Value="0 1 0 0 #ffffff44" />
   </Style>
   <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource SteamPrimaryHoverBrush}" />
