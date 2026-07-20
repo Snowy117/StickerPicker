@@ -16,7 +16,6 @@
 
   <Panel>
     <DockPanel>
-      <!-- ===== Heavy dark header bar (Steam signature) ===== -->
       <!-- ===== Status bar (dense, single line) ===== -->
       <Border DockPanel.Dock="Bottom"
               Background="{DynamicResource SteamBgBrush}"
