@@ -217,6 +217,16 @@
             <CheckBox Content="窗口置顶"
                       IsChecked="{Binding Settings.AlwaysOnTop}" />
 
+            <!-- GPU rendering (Windows; takes effect on next launch) -->
+            <StackPanel Spacing="2">
+              <CheckBox Content="启用 GPU 渲染"
+                        IsChecked="{Binding Settings.UseGpuRendering}" />
+              <TextBlock Text="仅 Windows；重启后生效"
+                         Classes="muted"
+                         FontSize="11"
+                         Margin="20,0,0,0" />
+            </StackPanel>
+
             <!-- Hover preview -->
             <CheckBox Content="鼠标悬停时显示大图"
                       IsChecked="{Binding Settings.HoverPreview}" />

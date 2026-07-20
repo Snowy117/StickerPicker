@@ -39,6 +39,7 @@ public partial class SettingsViewModel : ViewModelBase
         Hotkey = _config.Hotkey;
         HoverPreview = _config.HoverPreview;
         PreviewOpacity = _config.PreviewOpacity;
+        UseGpuRendering = _config.UseGpuRendering;
         DataRootDisplay = _paths.DataRoot;
         StatusMessage = "";
         _isReady = true;
@@ -57,6 +58,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial double PreviewOpacity { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseGpuRendering { get; set; }
 
     [ObservableProperty]
     public partial string Hotkey { get; set; }
@@ -84,6 +88,7 @@ public partial class SettingsViewModel : ViewModelBase
             case nameof(AlwaysOnTop):
             case nameof(HoverPreview):
             case nameof(PreviewOpacity):
+            case nameof(UseGpuRendering):
                 ApplyAndSave();
                 break;
         }
@@ -169,6 +174,7 @@ public partial class SettingsViewModel : ViewModelBase
         _config.AlwaysOnTop = AlwaysOnTop;
         _config.HoverPreview = HoverPreview;
         _config.PreviewOpacity = PreviewOpacity;
+        _config.UseGpuRendering = UseGpuRendering;
         _config.Hotkey = Hotkey;
         Persist();
         _windowChrome.SetTopmost(AlwaysOnTop);
