@@ -221,6 +221,24 @@
             <CheckBox Content="鼠标悬停时显示大图"
                       IsChecked="{Binding Settings.HoverPreview}" />
 
+            <!-- Hover preview opacity -->
+            <StackPanel Spacing="4">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="预览不透明度" Classes="section" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Settings.PreviewOpacity, StringFormat=P0}"
+                           Classes="muted"
+                           FontSize="11"
+                           VerticalAlignment="Center" />
+              </Grid>
+              <Slider Minimum="0.2"
+                      Maximum="1"
+                      Value="{Binding Settings.PreviewOpacity}"
+                      TickFrequency="0.01"
+                      SmallChange="0.01"
+                      LargeChange="0.05" />
+            </StackPanel>
+
             <!-- Hotkey -->
             <StackPanel Spacing="4">
               <TextBlock Text="全局热键" Classes="section" />

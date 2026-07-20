@@ -38,6 +38,7 @@ public partial class SettingsViewModel : ViewModelBase
         AlwaysOnTop = _config.AlwaysOnTop;
         Hotkey = _config.Hotkey;
         HoverPreview = _config.HoverPreview;
+        PreviewOpacity = _config.PreviewOpacity;
         DataRootDisplay = _paths.DataRoot;
         StatusMessage = "";
         _isReady = true;
@@ -53,6 +54,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool HoverPreview { get; set; }
+
+    [ObservableProperty]
+    public partial double PreviewOpacity { get; set; }
 
     [ObservableProperty]
     public partial string Hotkey { get; set; }
@@ -79,6 +83,7 @@ public partial class SettingsViewModel : ViewModelBase
             case nameof(Theme):
             case nameof(AlwaysOnTop):
             case nameof(HoverPreview):
+            case nameof(PreviewOpacity):
                 ApplyAndSave();
                 break;
         }
@@ -163,6 +168,7 @@ public partial class SettingsViewModel : ViewModelBase
         _config.Theme = Theme;
         _config.AlwaysOnTop = AlwaysOnTop;
         _config.HoverPreview = HoverPreview;
+        _config.PreviewOpacity = PreviewOpacity;
         _config.Hotkey = Hotkey;
         Persist();
         _windowChrome.SetTopmost(AlwaysOnTop);

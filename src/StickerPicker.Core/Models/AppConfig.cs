@@ -18,6 +18,8 @@ public sealed class AppConfig
 
     public bool HoverPreview { get; set; } = true;
 
+    public double PreviewOpacity { get; set; } = 0.92;
+
     public WindowGeometry Window { get; set; } = new();
 
     public AppConfig Clone() => new()
@@ -29,6 +31,7 @@ public sealed class AppConfig
         DataRoot = DataRoot,
         ThumbnailSize = ThumbnailSize,
         HoverPreview = HoverPreview,
+        PreviewOpacity = PreviewOpacity,
         Window = Window.Clone(),
     };
 }
