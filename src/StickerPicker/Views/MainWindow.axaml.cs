@@ -14,6 +14,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Closing += OnClosing;
+        StickerScroll.AddHandler(
+            PointerWheelChangedEvent,
+            OnStickerScrollWheel,
+            RoutingStrategies.Tunnel,
+            handledEventsToo: true);
     }
 
     public void ForceClose()
@@ -254,7 +259,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    private void OnStickerScrollWheel(object? sender, PointerWheelEventArgs e)
     {
         if (DataContext is not MainViewModel vm)
         {

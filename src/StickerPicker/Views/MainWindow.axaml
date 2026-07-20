@@ -12,8 +12,7 @@
         Width="960"
         Height="640"
         MinWidth="720"
-        MinHeight="480"
-        PointerWheelChanged="OnPointerWheelChanged">
+        MinHeight="480">
 
   <Panel>
     <DockPanel>
@@ -134,7 +133,8 @@
         </Border>
 
         <!-- Dense sticker grid -->
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+        <ScrollViewer x:Name="StickerScroll"
+                      HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto"
                       Padding="6">
           <ItemsControl ItemsSource="{Binding Stickers}">
