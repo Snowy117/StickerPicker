@@ -44,6 +44,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        HideHoverPreview();
         e.Cancel = true;
         Hide();
     }

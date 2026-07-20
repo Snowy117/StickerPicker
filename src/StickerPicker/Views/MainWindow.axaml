@@ -245,23 +245,5 @@
         </DockPanel>
       </Border>
     </Border>
-
-    <!-- Hover preview popup -->
-    <Border x:Name="HoverPreviewBorder"
-            IsVisible="False"
-            Opacity="0.92"
-            ZIndex="20"
-            Background="{DynamicResource SteamPanelBrush}"
-            BorderBrush="{DynamicResource SteamBorderBrush}"
-            BorderThickness="1"
-            CornerRadius="4"
-            Padding="4"
-            MaxWidth="400"
-            MaxHeight="400">
-      <Image x:Name="HoverPreviewImage"
-             Stretch="Uniform"
-             MaxWidth="392"
-             MaxHeight="392" />
-    </Border>
   </Panel>
 </Window>

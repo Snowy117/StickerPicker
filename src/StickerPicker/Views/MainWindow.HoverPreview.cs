@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using StickerPicker.Controls;
@@ -9,12 +10,17 @@ namespace StickerPicker.Views;
 
 public partial class MainWindow
 {
+    private Window? _hoverPreviewWindow;
+    private Image? _hoverPreviewImage;
     private Bitmap? _hoverBitmap;
     private bool _hoverVisible;
+    private Point _lastScreenPos;
 
     private void RegisterHoverHandlers()
     {
         AddHandler(StickerHoverRouter.StickerHoverEvent, OnStickerHover);
+        PointerMoved += OnHoverPointerMoved;
+        Deactivated += (_, _) => HideHoverPreview();
     }
 
     private void OnStickerHover(object? sender, StickerHoverEventArgs e)
@@ -35,10 +41,19 @@ public partial class MainWindow
             return;
         }
 
-        ShowHoverPreview(e.Sticker, e.Source as Control);
+        ShowHoverPreview(e.Sticker);
     }
 
-    private void ShowHoverPreview(StickerItemViewModel item, Control? source)
+    private void OnHoverPointerMoved(object? sender, PointerEventArgs e)
+    {
+        _lastScreenPos = e.GetPosition(this);
+        if (_hoverVisible)
+        {
+            PositionHoverPreview(_lastScreenPos);
+        }
+    }
+
+    private void ShowHoverPreview(StickerItemViewModel item)
     {
         _hoverBitmap?.Dispose();
         _hoverBitmap = LoadHoverBitmap(item.AbsolutePath);
@@ -48,10 +63,15 @@ public partial class MainWindow
             return;
         }
 
-        HoverPreviewImage.Source = _hoverBitmap;
-        HoverPreviewBorder.IsVisible = true;
-        _hoverVisible = true;
-        PositionHoverPreview(source);
+        EnsureHoverPreviewWindow();
+        var window = _hoverPreviewWindow!;
+        _hoverPreviewImage!.Source = _hoverBitmap;
+        PositionHoverPreview(_lastScreenPos);
+        if (!_hoverVisible)
+        {
+            _hoverVisible = true;
+            window.Show(this);
+        }
     }
 
     private void HideHoverPreview()
@@ -62,35 +82,80 @@ public partial class MainWindow
         }
 
         _hoverVisible = false;
-        HoverPreviewBorder.IsVisible = false;
-        HoverPreviewImage.Source = null;
+        _hoverPreviewWindow?.Hide();
+        _hoverPreviewImage?.Source = null;
+
         _hoverBitmap?.Dispose();
         _hoverBitmap = null;
     }
 
-    private void PositionHoverPreview(Control? source)
+    // Separate topmost window so the preview is never clipped by the main window
+    // and can follow the cursor anywhere on screen.
+    private void EnsureHoverPreviewWindow()
     {
-        var origin = source is null
-            ? new Point(0, 0)
-            : source.TranslatePoint(new Point(source.Bounds.Width, 0), this) ?? new Point(0, 0);
+        if (_hoverPreviewWindow is not null)
+        {
+            return;
+        }
+
+        _hoverPreviewImage = new Image { Stretch = Stretch.Uniform };
+        var app = Application.Current;
+        _hoverPreviewWindow = new Window
+        {
+            ShowActivated = false,
+            WindowDecorations = WindowDecorations.None,
+            ShowInTaskbar = false,
+            IsHitTestVisible = false,
+            Topmost = true,
+            CanResize = false,
+            Background = new SolidColorBrush(Colors.Transparent),
+            SizeToContent = SizeToContent.WidthAndHeight,
+            MaxWidth = 400,
+            MaxHeight = 400,
+            Content = new Border
+            {
+                Opacity = 0.92,
+                Background = app?.FindResource("SteamPanelBrush") as IBrush,
+                BorderBrush = app?.FindResource("SteamBorderBrush") as IBrush,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(4),
+                Child = _hoverPreviewImage,
+            },
+        };
+    }
+
+    private void PositionHoverPreview(Point windowRelative)
+    {
+        if (_hoverPreviewWindow is null)
+        {
+            return;
+        }
 
         const double Offset = 16;
-        var previewWidth = HoverPreviewBorder.Bounds.Width > 0 ? HoverPreviewBorder.Bounds.Width : 240;
-        var previewHeight = HoverPreviewBorder.Bounds.Height > 0 ? HoverPreviewBorder.Bounds.Height : 240;
+        const int MaxBitmap = 392;
+        var previewW = Math.Min(_hoverBitmap?.PixelSize.Width ?? MaxBitmap, MaxBitmap) + 10;
+        var previewH = Math.Min(_hoverBitmap?.PixelSize.Height ?? MaxBitmap, MaxBitmap) + 10;
 
-        var x = origin.X + Offset;
-        var y = origin.Y + Offset;
-        if (x + previewWidth > Bounds.Width)
+        var client = this.PointToScreen(windowRelative);
+        var x = client.X + (int)Offset;
+        var y = client.Y + (int)Offset;
+
+        var screen = Screens.ScreenFromPoint(new PixelPoint(x, y));
+        if (screen is not null)
         {
-            x = Math.Max(0, origin.X - Offset - previewWidth);
+            if (x + previewW > screen.Bounds.Right)
+            {
+                x = client.X - (int)Offset - previewW;
+            }
+
+            if (y + previewH > screen.Bounds.Bottom)
+            {
+                y = client.Y - (int)Offset - previewH;
+            }
         }
 
-        if (y + previewHeight > Bounds.Height)
-        {
-            y = Math.Max(0, origin.Y - Offset - previewHeight);
-        }
-
-        HoverPreviewBorder.RenderTransform = new TranslateTransform(x, y);
+        _hoverPreviewWindow.Position = new PixelPoint(x, y);
     }
 
     private static Bitmap? LoadHoverBitmap(string path)
