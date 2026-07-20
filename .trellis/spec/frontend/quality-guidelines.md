@@ -99,3 +99,42 @@ if (icon is not null) { icon.Command = ...; icon.Menu = ...; }
 `Window.SystemDecorations` is obsolete in Avalonia 12.x. Use the static
 `WindowDecorations` enum: `WindowDecorations = WindowDecorations.None`
 (qualify with the type name — the members are static fields, not instance).
+
+### TextInputEvent carries the IME-composed string
+
+For "global type-to-search" behavior, hook the tunnel/bubble routed event
+`InputElement.TextInputEvent` (NOT `KeyDown`):
+
+```csharp
+AddHandler(InputElement.TextInputEvent, OnGlobalTextInput,
+           RoutingStrategies.Tunnel);
+```
+
+`TextInputEventArgs.Text` is the **final composed string**, so CJK IME
+input Just Works without per-keystroke handling. Hooking `KeyDown`
+instead would double-fire during IME composition and break CJK. Modifier-
+only / function / navigation keys are not `TextInput` and are naturally
+ignored — no need to filter them.
+
+### Window.IsActive covers topmost-but-unfocused
+
+`Window.IsActive` is true only when the window has keyboard focus. A
+`Topmost=true` window that has been shadowed by another app reports
+`IsActive == false` even though it is visible. For hotkey toggle
+semantics, treat `!IsVisible || !IsActive` as "needs to surface";
+surfaceing logic that only checks `IsVisible` will hide a window the
+user expected to come forward.
+
+### Overlay fade stagger
+
+Fading a nested `Border.Opacity` whose children carry their own
+`BrushTransition`s (Buttons, TextBoxes, ListBoxItems — they inherit
+them from `SteamStyles.axaml`) produces a **per-child stagger**: each
+child's `Background`/`BorderBrush` re-evaluates its transition when
+the card becomes visible, on top of the card's own fade.
+
+Fix: put the `DoubleTransition` on the **outer mask** (the full-subtree
+Border), not the inner card. `Opacity` is a single inherited property,
+so the whole tree alpha-blends as one block and child brushes settle
+exactly once. This is why `MainWindow.SettingsAnimation.cs` fades
+`OverlayMask`, not `OverlayCard`.
