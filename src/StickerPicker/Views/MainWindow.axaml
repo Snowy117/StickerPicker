@@ -287,5 +287,47 @@
         </DockPanel>
       </Border>
     </Border>
+
+    <!-- ===== Tag editor overlay: mirrors the settings overlay ===== -->
+    <Border x:Name="TagEditorMask"
+            IsVisible="False"
+            Background="#B3000000"
+            ZIndex="20"
+            Opacity="0">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.16" />
+        </Transitions>
+      </Border.Transitions>
+      <Border x:Name="TagEditorCard"
+              Classes="panel"
+              Width="420"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              BorderThickness="1"
+              Padding="0">
+        <DockPanel>
+          <Border DockPanel.Dock="Top"
+                  Classes="headerbar"
+                  Padding="14,9">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="编辑标签" Classes="header" />
+              <Button Grid.Column="1"
+                      Classes="subtle"
+                      Content="✕"
+                      Width="26"
+                      Height="24"
+                      Padding="0"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding CloseTagEditorCommand}" />
+            </Grid>
+          </Border>
+
+          <Border Padding="16,12">
+            <controls:TagEditor DataContext="{Binding TagEditorTarget}" />
+          </Border>
+        </DockPanel>
+      </Border>
+    </Border>
   </Panel>
 </Window>

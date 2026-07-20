@@ -90,7 +90,28 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsSettingsOpen { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsTagEditorOpen { get; set; }
+
+    [ObservableProperty]
+    public partial StickerItemViewModel? TagEditorTarget { get; set; }
+
     public void ShowSettings() => IsSettingsOpen = true;
+
+    public void OpenTagEditor(StickerItemViewModel item)
+    {
+        TagEditorTarget = item;
+        IsTagEditorOpen = true;
+    }
+
+    public void CloseTagEditor()
+    {
+        IsTagEditorOpen = false;
+        TagEditorTarget = null;
+    }
+
+    [RelayCommand]
+    private void CloseTagEditorCommand() => CloseTagEditor();
 
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
