@@ -166,15 +166,10 @@
               VerticalAlignment="Center"
               BorderThickness="1"
               Padding="0"
-              Opacity="0"
-              RenderTransformOrigin="0.5,0.5">
-        <Border.RenderTransform>
-          <ScaleTransform ScaleX="0.96" ScaleY="0.96" />
-        </Border.RenderTransform>
+              Opacity="0">
         <Border.Transitions>
           <Transitions>
             <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
           </Transitions>
         </Border.Transitions>
         <DockPanel>
