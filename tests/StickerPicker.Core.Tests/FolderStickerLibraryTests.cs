@@ -309,6 +309,36 @@ public sealed class FolderStickerLibraryTests
     }
 
     [Fact]
+    public async Task DeleteSticker_RemovesFileAndMetadata()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("tmp");
+        await fixture.Library.ImportAsync([fixture.WritePng("d.png", 4)], "tmp");
+        var sticker = fixture.Library.Stickers.Single();
+        var hash = sticker.Hash;
+        var abs = sticker.AbsolutePath;
+        Assert.False(string.IsNullOrEmpty(hash));
+
+        fixture.Library.DeleteSticker(sticker.RelativePath);
+
+        Assert.Empty(fixture.Library.Stickers);
+        Assert.False(File.Exists(abs));
+    }
+
+    [Fact]
+    public void DeleteSticker_MissingFile_StillRemovesMetadata()
+    {
+        using var fixture = new LibraryFixture();
+        fixture.Library.Refresh();
+        fixture.Library.CreateCategory("tmp");
+
+        fixture.Library.DeleteSticker("library/tmp/never.png");
+
+        Assert.Empty(fixture.Library.Stickers);
+    }
+
+    [Fact]
     public void Load_Recovers_FromCorruptMetadata()
     {
         using var fixture = new LibraryFixture();

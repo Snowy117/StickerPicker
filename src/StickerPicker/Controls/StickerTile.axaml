@@ -15,5 +15,12 @@
              HorizontalAlignment="Center"
              VerticalAlignment="Center" />
     </Panel>
+    <Border.ContextMenu>
+      <ContextMenu>
+        <MenuItem Header="编辑标签" x:Name="EditTagsItem" />
+        <MenuItem Header="移动到分类" x:Name="MoveSubmenu" />
+        <MenuItem Header="删除" x:Name="DeleteItem" />
+      </ContextMenu>
+    </Border.ContextMenu>
   </Border>
 </UserControl>

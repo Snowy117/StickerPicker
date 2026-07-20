@@ -30,5 +30,7 @@ public interface IStickerLibrary
 
     void MoveSticker(string relativePath, string targetCategoryId);
 
+    void DeleteSticker(string relativePath);
+
     void SetTags(string relativePath, IReadOnlyList<string> tags);
 }

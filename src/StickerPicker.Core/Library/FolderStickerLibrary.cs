@@ -232,6 +232,29 @@ public sealed class FolderStickerLibrary : IStickerLibrary
         }
     }
 
+    public void DeleteSticker(string relativePath)
+    {
+        _gate.Wait();
+        try
+        {
+            var key = LibraryPathRules.NormalizeRelativeKey(relativePath);
+            var sourceAbs = LibraryPathRules.ToAbsolutePath(_paths.DataRoot, key);
+            if (File.Exists(sourceAbs))
+            {
+                File.Delete(sourceAbs);
+            }
+
+            _index.Load();
+            _index.RemoveStickerKey(key);
+            _index.Save();
+            RefreshUnlocked();
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     public void SetTags(string relativePath, IReadOnlyList<string> tags)
     {
         ArgumentNullException.ThrowIfNull(tags);

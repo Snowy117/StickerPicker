@@ -161,6 +161,21 @@ internal sealed class LibraryIndexStore(IAppPaths paths)
         }
     }
 
+    public void RemoveStickerKey(string relative)
+    {
+        if (!Metadata.Stickers.TryGetValue(relative, out var entry))
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(entry.Hash))
+        {
+            Hashes.Hashes.Remove(entry.Hash);
+        }
+
+        Metadata.Stickers.Remove(relative);
+    }
+
     public void SetTags(string relative, IReadOnlyList<string> tags)
     {
         if (!Metadata.Stickers.TryGetValue(relative, out var entry))
