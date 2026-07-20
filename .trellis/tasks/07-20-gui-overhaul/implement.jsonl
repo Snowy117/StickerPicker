@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend spec index — links quality, component, type-safety, and the new visual-style guidelines"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Steam-style UI requirements, XAML runtime pitfalls, and C# <400 line cap"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Nullable rules and file-size cap that all GUI changes must respect"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Component conventions referenced from the index (currently template-only; visual-style addition is adjacent)"}

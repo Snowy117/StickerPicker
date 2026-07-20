@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality check baseline: Steam style, forbidden patterns, XAML pitfalls, file size"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Nullability and file-size enforcement during review"}
+{"file": ".trellis/spec/frontend/visual-style.md", "reason": "Visual-style spec added by step 0 — reviewer confirms changes match the brief"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend index for cross-references during review"}
