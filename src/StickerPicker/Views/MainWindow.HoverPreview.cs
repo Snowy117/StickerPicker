@@ -36,9 +36,12 @@ public partial class MainWindow
 
         if (!e.IsEnter)
         {
+            vm.HoveredFileName = "";
             HideHoverPreview();
             return;
         }
+
+        vm.HoveredFileName = e.Sticker.FileName;
 
         if (!vm.Settings.HoverPreview)
         {
@@ -134,6 +137,11 @@ public partial class MainWindow
 
         _hoverBitmap?.Dispose();
         _hoverBitmap = null;
+
+        if (DataContext is MainViewModel vm)
+        {
+            vm.HoveredFileName = "";
+        }
     }
 
     private void CancelHoverDecode()

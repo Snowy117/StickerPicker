@@ -76,6 +76,9 @@ public partial class MainViewModel : ViewModelBase
     public partial string StatusText { get; set; } = "就绪";
 
     [ObservableProperty]
+    public partial string HoveredFileName { get; set; } = "";
+
+    [ObservableProperty]
     public partial double ThumbnailSize { get; set; }
 
     [ObservableProperty]
