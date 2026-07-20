@@ -42,3 +42,7 @@ Built Avalonia StickerPicker MVP-A (.slnx, folder categories, Core library split
 ### Next Steps
 
 - None - task complete
+
+## 2026-07-19 UX hotkey/copy/zoom
+- Fixed StickerTile Execute(null); zoom ResizeTiles; HotkeyCaptureBox
+- Commit 5f58a19
