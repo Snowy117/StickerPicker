@@ -32,7 +32,7 @@
 
       <!-- ===== Status bar (dense, single line) ===== -->
       <Border DockPanel.Dock="Bottom"
-              Background="{DynamicResource SteamDarkBg}"
+              Background="{DynamicResource SteamBgBrush}"
               BorderBrush="{DynamicResource SteamBorderBrush}"
               BorderThickness="0,1,0,0"
               Padding="10,3">
@@ -40,7 +40,7 @@
           <TextBlock Text="{Binding StatusText}" Classes="muted" FontSize="11" VerticalAlignment="Center" />
           <TextBlock Grid.Column="1"
                      Text="{Binding ErrorMessage}"
-                     Foreground="#e74c3c"
+                     Foreground="{DynamicResource SteamErrorBrush}"
                      FontSize="11"
                      VerticalAlignment="Center"
                      Margin="12,0,0,0" />
@@ -49,7 +49,7 @@
 
       <!-- ===== Sidebar: dense category nav ===== -->
       <Border DockPanel.Dock="Left"
-              Background="{DynamicResource SteamDarkPanel}"
+              Background="{DynamicResource SteamPanelBrush}"
               BorderBrush="{DynamicResource SteamBorderBrush}"
               BorderThickness="0,0,1,0"
               Width="184">
@@ -113,7 +113,7 @@
       <DockPanel Background="{DynamicResource SteamBgBrush}">
         <!-- Toolbar: search + imports -->
         <Border DockPanel.Dock="Top"
-                Background="{DynamicResource SteamDarkPanel}"
+                Background="{DynamicResource SteamPanelBrush}"
                 BorderBrush="{DynamicResource SteamBorderSoftBrush}"
                 BorderThickness="0,0,0,1"
                 Padding="10,8">
@@ -155,7 +155,7 @@
 
     <!-- ===== Settings overlay: dense inline panel ===== -->
     <Border IsVisible="{Binding IsSettingsOpen}"
-            Background="#E6000000"
+            Background="#B3000000"
             ZIndex="10">
       <Border Classes="panel"
               Width="460"

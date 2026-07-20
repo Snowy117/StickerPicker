@@ -3,7 +3,7 @@
              x:Class="StickerPicker.Controls.HotkeyCaptureBox"
              Focusable="True">
   <Border x:Name="CaptureBorder"
-          Background="{DynamicResource SteamDarkBg}"
+          Background="{DynamicResource SteamBgBrush}"
           BorderBrush="{DynamicResource SteamBorderBrush}"
           CornerRadius="2"
           BorderThickness="1"

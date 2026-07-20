@@ -43,7 +43,7 @@
   <!-- Heavy dark header bar: signature Steam top weight -->
   <Style Selector="Border.headerbar">
     <Setter Property="Background" Value="{DynamicResource SteamHeaderGradientBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource SteamDarkBg}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderBrush}" />
     <Setter Property="BorderThickness" Value="0,0,0,2" />
   </Style>
 
@@ -101,7 +101,7 @@
   <Style Selector="Button.primary">
     <Setter Property="Background" Value="{DynamicResource SteamPrimaryBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource SteamGreenTextBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource SteamDarkBg}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderBrush}" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="LetterSpacing" Value="0.3" />
@@ -138,7 +138,7 @@
   <!-- ============================================================ -->
   <Style Selector="TextBox">
     <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{DynamicResource SteamDarkBg}" />
+    <Setter Property="Background" Value="{DynamicResource SteamBgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource SteamTextBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderBrush}" />
     <Setter Property="CaretBrush" Value="{DynamicResource SteamAccentBrush}" />
@@ -197,7 +197,7 @@
   <!-- ============================================================ -->
   <Style Selector="ComboBox">
     <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{DynamicResource SteamDarkBg}" />
+    <Setter Property="Background" Value="{DynamicResource SteamBgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource SteamTextBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderBrush}" />
   </Style>
@@ -220,11 +220,11 @@
   </Style>
   <Style Selector="ScrollBar:vertical /template/ Border">
     <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{DynamicResource SteamDarkBg}" />
+    <Setter Property="Background" Value="{DynamicResource SteamBgBrush}" />
   </Style>
   <Style Selector="ScrollBar:horizontal /template/ Border">
     <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{DynamicResource SteamDarkBg}" />
+    <Setter Property="Background" Value="{DynamicResource SteamBgBrush}" />
   </Style>
   <Style Selector="ScrollBar Thumb">
     <Setter Property="CornerRadius" Value="2" />

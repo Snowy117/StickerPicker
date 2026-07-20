@@ -172,6 +172,7 @@ public partial class App : Application
             SetSolidBrush(resources, "SteamMutedBrush", "SteamDarkMuted");
             SetSolidBrush(resources, "SteamAccentBrush", "SteamAccent");
             SetSolidBrush(resources, "SteamAccentDimBrush", "SteamAccentDim");
+            SetSolidBrush(resources, "SteamErrorBrush", "SteamErrorDark");
             SetGradientBrush(resources, "SteamHeaderGradientBrush",
                 "SteamDarkPanel", "SteamDarkBg");
         }
@@ -189,6 +190,7 @@ public partial class App : Application
             SetSolidBrush(resources, "SteamMutedBrush", "SteamLightMuted");
             SetSolidBrush(resources, "SteamAccentBrush", "SteamLightAccent");
             SetSolidBrush(resources, "SteamAccentDimBrush", "SteamLightAccentDim");
+            SetSolidBrush(resources, "SteamErrorBrush", "SteamErrorLight");
             SetGradientBrush(resources, "SteamHeaderGradientBrush",
                 "SteamLightHeader", "SteamLightBg");
         }
