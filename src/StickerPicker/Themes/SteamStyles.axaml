@@ -54,8 +54,8 @@
     <Setter Property="CornerRadius" Value="2" />
     <Setter Property="Background" Value="{DynamicResource SteamPanelAltBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource SteamTextBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderSoftBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="12,5" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Transitions">
@@ -69,6 +69,8 @@
     </Setter>
   </Style>
   <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderSoftBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Background" Value="{DynamicResource SteamHoverBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource SteamTextBrightBrush}" />
     <Setter Property="Transitions">
@@ -88,11 +90,14 @@
   <Style Selector="Button.subtle">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderSoftBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Foreground" Value="{DynamicResource SteamTextBrush}" />
     <Setter Property="Padding" Value="10,4" />
     <Setter Property="FontWeight" Value="Normal" />
   </Style>
   <Style Selector="Button.subtle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamBorderSoftBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Background" Value="{DynamicResource SteamPanelAltBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource SteamTextBrightBrush}" />
   </Style>
@@ -131,6 +136,7 @@
     <Setter Property="Height" Value="28" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="BorderThickness" Value="0" />
   </Style>
 
   <!-- ============================================================ -->
