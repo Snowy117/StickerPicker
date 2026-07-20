@@ -15,13 +15,19 @@ public partial class MainViewModel : ViewModelBase
     private readonly IClipboardImageService _clipboard;
     private readonly IHotkeyService _hotkeyService;
     private readonly IWindowChromeService _windowChrome;
+    private readonly SemaphoreSlim _libraryOperationGate = new(1, 1);
+    private IReadOnlyList<Category> _libraryCategories = [];
+    private IReadOnlyList<Sticker> _libraryStickers = [];
     private AppConfig _config;
     private bool _suppressCategoryChange;
     private readonly bool _isReady;
     private DispatcherTimer? _thumbnailSaveTimer;
     private DispatcherTimer? _thumbnailResizeTimer;
+    private DispatcherTimer? _thumbnailDecodeTimer;
+    private DispatcherTimer? _searchTimer;
     private double _pendingThumbnailSize;
     private double _appliedThumbnailSize;
+    private bool _isShutdown;
 
     public MainViewModel(
         IStickerLibrary library,
@@ -49,7 +55,7 @@ public partial class MainViewModel : ViewModelBase
             _hotkeyService,
             _windowChrome,
             _config,
-            onDataRootChanged: ReloadLibrary,
+            onDataRootChanged: ChangeDataRootAsync,
             onConfigApplied: ApplyConfigFromSettings);
 
         _isReady = true;
@@ -86,20 +92,36 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
-    public void Initialize()
+    public async Task InitializeAsync()
     {
         try
         {
-            _paths.EnsureDataLayout();
-            _library.Refresh();
+            await RunLibraryOperationAsync(async () =>
+            {
+                await Task.Run(() =>
+                {
+                    _paths.EnsureDataLayout();
+                    _library.Refresh();
+                });
+            });
+            if (_isShutdown)
+            {
+                return;
+            }
+
             RebuildCategories();
             ApplyFilter();
             RegisterHotkeyFromConfig();
             _windowChrome.SetTopmost(_config.AlwaysOnTop);
-            StatusText = $"{_library.Stickers.Count} 张表情";
+            StatusText = $"{_libraryStickers.Count} 张表情";
         }
         catch (Exception ex)
         {
+            if (_isShutdown)
+            {
+                return;
+            }
+
             ErrorMessage = ex.Message;
             StatusText = "启动失败";
         }
@@ -116,17 +138,6 @@ public partial class MainViewModel : ViewModelBase
 
     public AppConfig CurrentConfig => _config.Clone();
 
-    partial void OnSearchTextChanged(string value)
-    {
-        _ = value;
-        if (!_isReady)
-        {
-            return;
-        }
-
-        ApplyFilter();
-    }
-
     partial void OnSelectedCategoryChanged(CategoryItemViewModel? value)
     {
         _ = value;
@@ -138,76 +149,31 @@ public partial class MainViewModel : ViewModelBase
         ApplyFilter();
     }
 
-    partial void OnThumbnailSizeChanged(double value)
+    public void Shutdown()
     {
-        if (!_isReady)
-        {
-            return;
-        }
-
-        ScheduleThumbnailResize(value);
-        ScheduleThumbnailSizePersist(value);
-    }
-
-    private void ScheduleThumbnailResize(double value)
-    {
-        _pendingThumbnailSize = value;
-        _thumbnailResizeTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
-        _thumbnailResizeTimer.Tick -= OnThumbnailResizeTick;
-        _thumbnailResizeTimer.Tick += OnThumbnailResizeTick;
-        _thumbnailResizeTimer.Stop();
-        _thumbnailResizeTimer.Start();
-    }
-
-    private void OnThumbnailResizeTick(object? sender, EventArgs e)
-    {
+        _isShutdown = true;
         _thumbnailResizeTimer?.Stop();
-        if (Math.Abs(_appliedThumbnailSize - _pendingThumbnailSize) < 0.5)
-        {
-            return;
-        }
-
-        _appliedThumbnailSize = _pendingThumbnailSize;
-        ResizeTiles(_pendingThumbnailSize);
-    }
-
-    private void ResizeTiles(double size)
-    {
-        foreach (var sticker in Stickers)
-        {
-            sticker.TileSize = size;
-        }
-    }
-
-    private void ScheduleThumbnailSizePersist(double value)
-    {
-        _pendingThumbnailSize = value;
-        _thumbnailSaveTimer ??= new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(200),
-        };
-        _thumbnailSaveTimer.Tick -= OnThumbnailSaveTick;
-        _thumbnailSaveTimer.Tick += OnThumbnailSaveTick;
-        _thumbnailSaveTimer.Stop();
-        _thumbnailSaveTimer.Start();
-    }
-
-    private void OnThumbnailSaveTick(object? sender, EventArgs e)
-    {
+        _thumbnailDecodeTimer?.Stop();
         _thumbnailSaveTimer?.Stop();
-        _config.ThumbnailSize = _pendingThumbnailSize;
-        _configStore.Save(_config);
+        _searchTimer?.Stop();
+        DisposeStickers(Stickers);
+        Stickers.Clear();
     }
 
     [RelayCommand]
-    private void RefreshLibrary()
+    private async Task RefreshLibraryAsync()
     {
         try
         {
-            _library.Refresh();
+            await RunLibraryOperationAsync(() => Task.Run(_library.Refresh));
+            if (_isShutdown)
+            {
+                return;
+            }
+
             RebuildCategories();
-            ApplyFilter();
-            StatusText = $"已刷新 · {_library.Stickers.Count} 张表情";
+            ApplyFilter(forceThumbnailReload: true);
+            StatusText = $"已刷新 · {_libraryStickers.Count} 张表情";
             ErrorMessage = null;
         }
         catch (Exception ex)
@@ -239,7 +205,13 @@ public partial class MainViewModel : ViewModelBase
         try
         {
             var categoryId = SelectedCategory?.Id;
-            var result = await _library.ImportAsync(list, categoryId);
+            var result = await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.ImportAsync(list, categoryId)));
+            if (_isShutdown)
+            {
+                return;
+            }
+
             RebuildCategories();
             ApplyFilter();
             StatusText = result.Summary;
@@ -285,12 +257,56 @@ public partial class MainViewModel : ViewModelBase
         ThumbnailSize = Math.Clamp(ThumbnailSize + delta, 48, 256);
     }
 
-    private void ReloadLibrary()
+    private async Task ChangeDataRootAsync(Func<Task> changeDataRoot)
     {
-        _library.Refresh();
+        await RunLibraryOperationAsync(async () =>
+        {
+            await changeDataRoot();
+            await Task.Run(_library.Refresh);
+        });
+        if (_isShutdown)
+        {
+            return;
+        }
+
         RebuildCategories();
         ApplyFilter();
         StatusText = $"数据目录：{_paths.DataRoot}";
+    }
+
+    private async Task RunLibraryOperationAsync(Func<Task> operation)
+    {
+        await _libraryOperationGate.WaitAsync();
+        try
+        {
+            await operation();
+            RefreshLibrarySnapshot();
+        }
+        finally
+        {
+            _libraryOperationGate.Release();
+        }
+    }
+
+    private async Task<T> RunLibraryOperationAsync<T>(Func<Task<T>> operation)
+    {
+        await _libraryOperationGate.WaitAsync();
+        try
+        {
+            var result = await operation();
+            RefreshLibrarySnapshot();
+            return result;
+        }
+        finally
+        {
+            _libraryOperationGate.Release();
+        }
+    }
+
+    private void RefreshLibrarySnapshot()
+    {
+        _libraryCategories = [.. _library.Categories];
+        _libraryStickers = [.. _library.Stickers];
     }
 
     private void ApplyConfigFromSettings(AppConfig config)
@@ -322,7 +338,7 @@ public partial class MainViewModel : ViewModelBase
         try
         {
             Categories.Clear();
-            foreach (var category in _library.Categories)
+            foreach (var category in _libraryCategories)
             {
                 Categories.Add(new CategoryItemViewModel(category));
             }
@@ -337,21 +353,12 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private void ApplyFilter()
+    private void DisposeStickers(IEnumerable<StickerItemViewModel> stickers)
     {
-        if (!_isReady)
+        foreach (var sticker in stickers)
         {
-            return;
+            _activeStickers.Remove(sticker);
+            sticker.Dispose();
         }
-
-        var categoryId = SelectedCategory?.Id ?? Category.AllId;
-        var results = _library.Query(categoryId, SearchText);
-        Stickers.Clear();
-        foreach (var sticker in results)
-        {
-            Stickers.Add(new StickerItemViewModel(sticker, ThumbnailSize, SelectStickerCommand));
-        }
-
-        StatusText = $"{Stickers.Count} 张表情";
     }
 }

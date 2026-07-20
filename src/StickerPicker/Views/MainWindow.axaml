@@ -138,18 +138,17 @@
                       HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto"
                       Padding="6">
-          <ItemsControl ItemsSource="{Binding Stickers}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <WrapPanel />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
+          <ItemsRepeater x:Name="StickerItems"
+                         ItemsSource="{Binding Stickers}">
+            <ItemsRepeater.Layout>
+              <WrapLayout Orientation="Horizontal" />
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
               <DataTemplate x:DataType="vm:StickerItemViewModel">
                 <controls:StickerTile />
               </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
         </ScrollViewer>
       </DockPanel>
     </DockPanel>

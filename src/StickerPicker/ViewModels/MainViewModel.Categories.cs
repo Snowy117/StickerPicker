@@ -5,7 +5,7 @@ namespace StickerPicker.ViewModels;
 public partial class MainViewModel
 {
     [RelayCommand]
-    private void CreateCategory(string? name)
+    private async Task CreateCategoryAsync(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -14,7 +14,8 @@ public partial class MainViewModel
 
         try
         {
-            var created = _library.CreateCategory(name.Trim());
+            var created = await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.CreateCategory(name.Trim())));
             RebuildCategories();
             SelectedCategory = Categories.FirstOrDefault(c =>
                 string.Equals(c.Id, created.Id, StringComparison.Ordinal));
@@ -28,7 +29,7 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
-    private void RenameCategory(string? newName)
+    private async Task RenameCategoryAsync(string? newName)
     {
         if (SelectedCategory is null || SelectedCategory.IsVirtual || string.IsNullOrWhiteSpace(newName))
         {
@@ -38,7 +39,8 @@ public partial class MainViewModel
         try
         {
             var id = SelectedCategory.Id;
-            _library.RenameCategory(id, newName.Trim());
+            await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.RenameCategory(id, newName.Trim())));
             RebuildCategories();
             SelectedCategory = Categories.FirstOrDefault(c =>
                 string.Equals(c.Name, newName.Trim(), StringComparison.OrdinalIgnoreCase));
@@ -52,7 +54,7 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
-    private void DeleteCategory(bool deleteFiles)
+    private async Task DeleteCategoryAsync(bool deleteFiles)
     {
         if (SelectedCategory is null || SelectedCategory.IsVirtual)
         {
@@ -61,7 +63,9 @@ public partial class MainViewModel
 
         try
         {
-            _library.DeleteCategory(SelectedCategory.Id, deleteFiles);
+            var categoryId = SelectedCategory.Id;
+            await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.DeleteCategory(categoryId, deleteFiles)));
             RebuildCategories();
             SelectedCategory = Categories.FirstOrDefault();
             ApplyFilter();

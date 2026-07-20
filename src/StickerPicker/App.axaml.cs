@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using StickerPicker.Core.Abstractions;
 using StickerPicker.Core.Config;
 using StickerPicker.Core.Library;
+using StickerPicker.Core.Models;
 using StickerPicker.Core.Paths;
 using StickerPicker.Services;
 using StickerPicker.ViewModels;
@@ -19,6 +20,8 @@ public partial class App : Application
     private IHotkeyService? _hotkeyService;
     private AvaloniaWindowChromeService? _windowChrome;
     private MainViewModel? _mainViewModel;
+    private Task? _initializationTask;
+    private bool _isShuttingDown;
 
     public override void Initialize()
     {
@@ -80,7 +83,15 @@ public partial class App : Application
         ShowWindowCommand = new RelayCommand(() => _windowChrome?.ToggleVisible());
         ExitCommand = new RelayCommand(() =>
         {
+            _isShuttingDown = true;
+            if (_initializationTask is { IsFaulted: true } failedInitialization)
+            {
+                _ = failedInitialization.Exception;
+            }
+
+            _initializationTask = null;
             _hotkeyService?.Dispose();
+            _mainViewModel?.Shutdown();
             _windowChrome?.Shutdown();
         });
         OpenSettingsCommand = new RelayCommand(() =>
@@ -112,23 +123,44 @@ public partial class App : Application
 
     private void WireMainWindowOpened(MainWindow mainWindow)
     {
-        mainWindow.Opened += (_, _) =>
+        mainWindow.Opened += OnMainWindowOpened;
+    }
+
+    private void OnMainWindowOpened(object? sender, EventArgs e)
+    {
+        if (sender is not MainWindow mainWindow || _mainViewModel is null || _windowChrome is null)
         {
-            if (_mainViewModel is null || _windowChrome is null)
-            {
-                return;
-            }
+            return;
+        }
 
-            var config = _mainViewModel.CurrentConfig;
-            if (config.Window is { Width: > 0, Height: > 0 })
-            {
-                mainWindow.Width = config.Window.Width;
-                mainWindow.Height = config.Window.Height;
-            }
+        mainWindow.Opened -= OnMainWindowOpened;
+        if (_initializationTask is not null)
+        {
+            return;
+        }
 
-            _mainViewModel.Initialize();
+        var config = _mainViewModel.CurrentConfig;
+        if (config.Window is { Width: > 0, Height: > 0 })
+        {
+            mainWindow.Width = config.Window.Width;
+            mainWindow.Height = config.Window.Height;
+        }
+
+        _initializationTask = InitializeMainWindowAsync(config);
+    }
+
+    private async Task InitializeMainWindowAsync(AppConfig config)
+    {
+        if (_mainViewModel is null || _windowChrome is null)
+        {
+            return;
+        }
+
+        await _mainViewModel.InitializeAsync();
+        if (!_isShuttingDown)
+        {
             _windowChrome.SetTopmost(config.AlwaysOnTop);
-        };
+        }
     }
 
     private void OnMainViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

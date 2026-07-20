@@ -12,7 +12,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IAppPaths _paths;
     private readonly IHotkeyService _hotkeyService;
     private readonly IWindowChromeService _windowChrome;
-    private readonly Action _onDataRootChanged;
+    private readonly Func<Func<Task>, Task> _onDataRootChanged;
     private readonly Action<AppConfig> _onConfigApplied;
     private readonly AppConfig _config;
     private readonly bool _isReady;
@@ -23,7 +23,7 @@ public partial class SettingsViewModel : ViewModelBase
         IHotkeyService hotkeyService,
         IWindowChromeService windowChrome,
         AppConfig config,
-        Action onDataRootChanged,
+        Func<Func<Task>, Task> onDataRootChanged,
         Action<AppConfig> onConfigApplied)
     {
         _configStore = configStore;
@@ -106,15 +106,18 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void UseDefaultDataRoot()
+    private async Task UseDefaultDataRootAsync()
     {
         try
         {
-            _paths.SetDataRoot(customDataRoot: null);
-            DataRootDisplay = _paths.DataRoot;
-            _config.DataRoot = null;
-            Persist();
-            _onDataRootChanged();
+            await _onDataRootChanged(() =>
+            {
+                _paths.SetDataRoot(customDataRoot: null);
+                DataRootDisplay = _paths.DataRoot;
+                _config.DataRoot = null;
+                Persist();
+                return Task.CompletedTask;
+            });
             StatusMessage = "已切换到默认数据目录。";
         }
         catch (Exception ex)
@@ -123,7 +126,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    public void ApplyCustomDataRoot(string directory)
+    public async Task ApplyCustomDataRootAsync(string directory)
     {
         if (string.IsNullOrWhiteSpace(directory))
         {
@@ -133,18 +136,20 @@ public partial class SettingsViewModel : ViewModelBase
 
         try
         {
-            var previous = _paths.DataRoot;
-            var target = Path.GetFullPath(directory);
-            if (CopyOnMigrate && !PathsEqual(previous, target) && Directory.Exists(previous))
+            await _onDataRootChanged(async () =>
             {
-                CopyDirectory(previous, target);
-            }
+                var previous = _paths.DataRoot;
+                var target = Path.GetFullPath(directory);
+                if (CopyOnMigrate && !PathsEqual(previous, target) && Directory.Exists(previous))
+                {
+                    await Task.Run(() => CopyDirectory(previous, target));
+                }
 
-            _paths.SetDataRoot(target);
-            DataRootDisplay = _paths.DataRoot;
-            _config.DataRoot = _paths.DataRoot;
-            Persist();
-            _onDataRootChanged();
+                _paths.SetDataRoot(target);
+                DataRootDisplay = _paths.DataRoot;
+                _config.DataRoot = _paths.DataRoot;
+                Persist();
+            });
             StatusMessage = "数据目录已更新。";
         }
         catch (Exception ex)

@@ -5,11 +5,12 @@ namespace StickerPicker.ViewModels;
 public partial class MainViewModel
 {
     [RelayCommand]
-    private void EditStickerTags((StickerItemViewModel Item, IReadOnlyList<string> Tags) payload)
+    private async Task EditStickerTagsAsync((StickerItemViewModel Item, IReadOnlyList<string> Tags) payload)
     {
         try
         {
-            _library.SetTags(payload.Item.RelativePath, payload.Tags);
+            await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.SetTags(payload.Item.RelativePath, payload.Tags)));
             ApplyFilter();
             StatusText = $"已更新标签：{payload.Item.FileName}";
             ErrorMessage = null;
@@ -21,11 +22,12 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
-    private void MoveSticker((StickerItemViewModel Item, string TargetCategoryId) payload)
+    private async Task MoveStickerAsync((StickerItemViewModel Item, string TargetCategoryId) payload)
     {
         try
         {
-            _library.MoveSticker(payload.Item.RelativePath, payload.TargetCategoryId);
+            await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.MoveSticker(payload.Item.RelativePath, payload.TargetCategoryId)));
             RebuildCategories();
             ApplyFilter();
             StatusText = $"已移动：{payload.Item.FileName}";
@@ -38,11 +40,12 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
-    private void DeleteSticker(StickerItemViewModel item)
+    private async Task DeleteStickerAsync(StickerItemViewModel item)
     {
         try
         {
-            _library.DeleteSticker(item.RelativePath);
+            await RunLibraryOperationAsync(
+                () => Task.Run(() => _library.DeleteSticker(item.RelativePath)));
             RebuildCategories();
             ApplyFilter();
             StatusText = $"已删除：{item.FileName}";

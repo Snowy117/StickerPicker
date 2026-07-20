@@ -33,8 +33,14 @@ internal sealed class LibraryIndexStore(IAppPaths paths)
         string? hash = null;
         try
         {
-            var bytes = File.ReadAllBytes(absolutePath);
-            hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+            using var stream = new FileStream(
+                absolutePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 81920,
+                FileOptions.SequentialScan);
+            hash = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
         }
         catch (IOException)
         {

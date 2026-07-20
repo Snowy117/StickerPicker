@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using StickerPicker.Controls;
+using StickerPicker.Services;
 using StickerPicker.ViewModels;
 
 namespace StickerPicker.Views;
@@ -13,6 +14,9 @@ public partial class MainWindow
     private Window? _hoverPreviewWindow;
     private Image? _hoverPreviewImage;
     private Bitmap? _hoverBitmap;
+    private CancellationTokenSource? _hoverCancellation;
+    private Task? _hoverLoadTask;
+    private int _hoverRequestVersion;
     private bool _hoverVisible;
     private Point _lastScreenPos;
 
@@ -41,7 +45,13 @@ public partial class MainWindow
             return;
         }
 
-        ShowHoverPreview(e.Sticker);
+        var requestVersion = ++_hoverRequestVersion;
+        CancelHoverDecode();
+        _hoverCancellation = new CancellationTokenSource();
+        _hoverLoadTask = ShowHoverPreviewAsync(
+            e.Sticker,
+            requestVersion,
+            _hoverCancellation.Token);
     }
 
     private void OnHoverPointerMoved(object? sender, PointerEventArgs e)
@@ -53,11 +63,42 @@ public partial class MainWindow
         }
     }
 
-    private void ShowHoverPreview(StickerItemViewModel item)
+    private async Task ShowHoverPreviewAsync(
+        StickerItemViewModel item,
+        int requestVersion,
+        CancellationToken cancellationToken)
     {
-        _hoverBitmap?.Dispose();
-        _hoverBitmap = LoadHoverBitmap(item.AbsolutePath);
-        if (_hoverBitmap is null)
+        if (requestVersion != _hoverRequestVersion)
+        {
+            return;
+        }
+
+        Bitmap? bitmap;
+        try
+        {
+            bitmap = await BoundedImageDecoder.DecodeAsync(item.AbsolutePath, 392, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (Exception)
+        {
+            if (!cancellationToken.IsCancellationRequested && requestVersion == _hoverRequestVersion)
+            {
+                HideHoverPreview();
+            }
+
+            return;
+        }
+
+        if (cancellationToken.IsCancellationRequested || requestVersion != _hoverRequestVersion)
+        {
+            bitmap?.Dispose();
+            return;
+        }
+
+        if (bitmap is null)
         {
             HideHoverPreview();
             return;
@@ -65,6 +106,9 @@ public partial class MainWindow
 
         EnsureHoverPreviewWindow();
         var window = _hoverPreviewWindow!;
+        _hoverPreviewImage!.Source = null;
+        _hoverBitmap?.Dispose();
+        _hoverBitmap = bitmap;
         _hoverPreviewImage!.Source = _hoverBitmap;
         PositionHoverPreview(_lastScreenPos);
         if (!_hoverVisible)
@@ -76,17 +120,35 @@ public partial class MainWindow
 
     private void HideHoverPreview()
     {
-        if (!_hoverVisible)
+        _hoverRequestVersion++;
+        if (_hoverLoadTask is { IsFaulted: true } failedLoad)
         {
-            return;
+            _ = failedLoad.Exception;
         }
 
+        _hoverLoadTask = null;
+        CancelHoverDecode();
         _hoverVisible = false;
         _hoverPreviewWindow?.Hide();
         _hoverPreviewImage?.Source = null;
 
         _hoverBitmap?.Dispose();
         _hoverBitmap = null;
+    }
+
+    private void CancelHoverDecode()
+    {
+        _hoverCancellation?.Cancel();
+        _hoverCancellation?.Dispose();
+        _hoverCancellation = null;
+    }
+
+    private void DisposeHoverPreview()
+    {
+        HideHoverPreview();
+        _hoverPreviewWindow?.Close();
+        _hoverPreviewWindow = null;
+        _hoverPreviewImage = null;
     }
 
     // Separate topmost window so the preview is never clipped by the main window
@@ -158,21 +220,4 @@ public partial class MainWindow
         _hoverPreviewWindow.Position = new PixelPoint(x, y);
     }
 
-    private static Bitmap? LoadHoverBitmap(string path)
-    {
-        try
-        {
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-
-            using var stream = File.OpenRead(path);
-            return Bitmap.DecodeToWidth(stream, 480);
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }

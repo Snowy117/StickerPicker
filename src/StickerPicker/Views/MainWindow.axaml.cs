@@ -16,6 +16,7 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         RegisterStickerActionHandlers();
         RegisterHoverHandlers();
+        RegisterThumbnailRealizationHandlers();
         RegisterSettingsAnimationHandlers();
         ImportFilesItem.Click += (_, e) => OnImportFilesClick(this, e);
         ImportFolderItem.Click += (_, e) => OnImportFolderClick(this, e);
@@ -24,6 +25,26 @@ public partial class MainWindow : Window
             OnStickerScrollWheel,
             RoutingStrategies.Tunnel,
             handledEventsToo: true);
+    }
+
+    private void RegisterThumbnailRealizationHandlers()
+    {
+        StickerItems.ElementPrepared += (_, e) =>
+        {
+            if (DataContext is MainViewModel viewModel
+                && e.Element.DataContext is StickerItemViewModel item)
+            {
+                viewModel.SetThumbnailActive(item, isActive: true);
+            }
+        };
+        StickerItems.ElementClearing += (_, e) =>
+        {
+            if (DataContext is MainViewModel viewModel
+                && e.Element.DataContext is StickerItemViewModel item)
+            {
+                viewModel.SetThumbnailActive(item, isActive: false);
+            }
+        };
     }
 
     public void ForceClose()
@@ -41,6 +62,7 @@ public partial class MainWindow : Window
 
         if (_forceClose)
         {
+            DisposeHoverPreview();
             return;
         }
 
@@ -125,7 +147,7 @@ public partial class MainWindow : Window
         var result = await PromptForNameAsync("新建分类", "分类名称", initial: null);
         if (!string.IsNullOrWhiteSpace(result))
         {
-            vm.CreateCategoryCommand.Execute(result);
+            await vm.CreateCategoryCommand.ExecuteAsync(result);
         }
     }
 
@@ -148,7 +170,7 @@ public partial class MainWindow : Window
             initial: vm.SelectedCategory.Name);
         if (!string.IsNullOrWhiteSpace(result))
         {
-            vm.RenameCategoryCommand.Execute(result);
+            await vm.RenameCategoryCommand.ExecuteAsync(result);
         }
     }
 
@@ -174,7 +196,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        vm.DeleteCategoryCommand.Execute(parameter: true);
+        await vm.DeleteCategoryCommand.ExecuteAsync(parameter: true);
     }
 
     private async Task<string?> PromptForNameAsync(string title, string label, string? initial)
@@ -267,7 +289,7 @@ public partial class MainWindow : Window
         var path = folders[0].TryGetLocalPath();
         if (!string.IsNullOrWhiteSpace(path))
         {
-            vm.Settings.ApplyCustomDataRoot(path);
+            await vm.Settings.ApplyCustomDataRootAsync(path);
         }
     }
 
@@ -279,6 +301,11 @@ public partial class MainWindow : Window
         }
 
         if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            return;
+        }
+
+        if (e.Delta.Y == 0)
         {
             return;
         }

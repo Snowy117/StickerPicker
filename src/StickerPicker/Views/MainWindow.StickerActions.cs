@@ -23,7 +23,7 @@ public partial class MainWindow
                 await EditTagsAsync(vm, e.Sticker);
                 break;
             case StickerActionKind.Move:
-                vm.MoveStickerCommand.Execute((e.Sticker, e.TargetCategoryId!));
+                await vm.MoveStickerCommand.ExecuteAsync((e.Sticker, e.TargetCategoryId!));
                 break;
             case StickerActionKind.Delete:
                 await DeleteStickerAsync(vm, e.Sticker);
@@ -41,7 +41,7 @@ public partial class MainWindow
         }
 
         var tags = result.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        vm.EditStickerTagsCommand.Execute((item, tags));
+        await vm.EditStickerTagsCommand.ExecuteAsync((item, tags));
     }
 
     private async Task DeleteStickerAsync(MainViewModel vm, StickerItemViewModel item)
@@ -52,6 +52,6 @@ public partial class MainWindow
             return;
         }
 
-        vm.DeleteStickerCommand.Execute(item);
+        await vm.DeleteStickerCommand.ExecuteAsync(item);
     }
 }
