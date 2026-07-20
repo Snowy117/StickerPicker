@@ -16,6 +16,8 @@ public sealed class AppConfig
 
     public double ThumbnailSize { get; set; } = 96;
 
+    public bool HoverPreview { get; set; } = true;
+
     public WindowGeometry Window { get; set; } = new();
 
     public AppConfig Clone() => new()
@@ -26,6 +28,7 @@ public sealed class AppConfig
         Hotkey = Hotkey,
         DataRoot = DataRoot,
         ThumbnailSize = ThumbnailSize,
+        HoverPreview = HoverPreview,
         Window = Window.Clone(),
     };
 }

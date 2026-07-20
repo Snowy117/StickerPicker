@@ -15,6 +15,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Closing += OnClosing;
         RegisterStickerActionHandlers();
+        RegisterHoverHandlers();
         StickerScroll.AddHandler(
             PointerWheelChangedEvent,
             OnStickerScrollWheel,

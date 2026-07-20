@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StickerPicker.Core.Abstractions;
@@ -36,6 +37,7 @@ public partial class SettingsViewModel : ViewModelBase
         Theme = _config.Theme;
         AlwaysOnTop = _config.AlwaysOnTop;
         Hotkey = _config.Hotkey;
+        HoverPreview = _config.HoverPreview;
         DataRootDisplay = _paths.DataRoot;
         StatusMessage = "";
         _isReady = true;
@@ -50,6 +52,9 @@ public partial class SettingsViewModel : ViewModelBase
     public partial bool AlwaysOnTop { get; set; }
 
     [ObservableProperty]
+    public partial bool HoverPreview { get; set; }
+
+    [ObservableProperty]
     public partial string Hotkey { get; set; }
 
     [ObservableProperty]
@@ -61,21 +66,21 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool CopyOnMigrate { get; set; } = true;
 
-    partial void OnThemeChanged(string value)
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
-        _ = value;
-        if (_isReady)
+        base.OnPropertyChanged(e);
+        if (!_isReady)
         {
-            ApplyAndSave();
+            return;
         }
-    }
 
-    partial void OnAlwaysOnTopChanged(bool value)
-    {
-        _ = value;
-        if (_isReady)
+        switch (e.PropertyName)
         {
-            ApplyAndSave();
+            case nameof(Theme):
+            case nameof(AlwaysOnTop):
+            case nameof(HoverPreview):
+                ApplyAndSave();
+                break;
         }
     }
 
@@ -152,6 +157,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _config.Theme = Theme;
         _config.AlwaysOnTop = AlwaysOnTop;
+        _config.HoverPreview = HoverPreview;
         _config.Hotkey = Hotkey;
         Persist();
         _windowChrome.SetTopmost(AlwaysOnTop);

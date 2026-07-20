@@ -1,12 +1,16 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using StickerPicker.ViewModels;
 
 namespace StickerPicker.Controls;
 
 public partial class StickerTile : UserControl
 {
+    private const int HoverDelayMs = 250;
+    private DispatcherTimer? _hoverTimer;
+
     public StickerTile()
     {
         InitializeComponent();
@@ -34,6 +38,26 @@ public partial class StickerTile : UserControl
     private void OnContextMenuOpening(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         RebuildMoveSubmenu();
+    }
+
+    private void OnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        _hoverTimer?.Stop();
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(HoverDelayMs) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            RaiseHover(isEnter: true);
+        };
+        _hoverTimer = timer;
+        timer.Start();
+    }
+
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        _hoverTimer?.Stop();
+        _hoverTimer = null;
+        RaiseHover(isEnter: false);
     }
 
     private void OnEditTagsClick(object? sender, RoutedEventArgs e) =>
@@ -90,6 +114,21 @@ public partial class StickerTile : UserControl
         var args = new StickerActionEventArgs(item, kind, targetCategoryId)
         {
             RoutedEvent = StickerActionRouter.StickerActionEvent,
+            Source = this,
+        };
+        RaiseEvent(args);
+    }
+
+    private void RaiseHover(bool isEnter)
+    {
+        if (DataContext is not StickerItemViewModel item)
+        {
+            return;
+        }
+
+        var args = new StickerHoverEventArgs(item, isEnter)
+        {
+            RoutedEvent = StickerHoverRouter.StickerHoverEvent,
             Source = this,
         };
         RaiseEvent(args);
