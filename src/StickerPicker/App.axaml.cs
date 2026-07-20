@@ -76,7 +76,7 @@ public partial class App : Application
 
     private void WireTrayCommands()
     {
-        ShowWindowCommand = new RelayCommand(() => _windowChrome?.Show());
+        ShowWindowCommand = new RelayCommand(() => _windowChrome?.ToggleVisible());
         ExitCommand = new RelayCommand(() =>
         {
             _hotkeyService?.Dispose();
