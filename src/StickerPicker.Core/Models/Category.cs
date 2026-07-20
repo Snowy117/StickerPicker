@@ -11,8 +11,8 @@ public sealed class Category
 
     public required string Id { get; init; }
     public required string Name { get; init; }
-    public bool IsVirtual { get; init; }
-    public int StickerCount { get; init; }
+    public bool IsVirtual { get; private init; }
+    public int StickerCount { get; private init; }
 
     public static Category All(int count) => new()
     {

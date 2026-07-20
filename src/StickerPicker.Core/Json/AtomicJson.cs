@@ -8,7 +8,7 @@ namespace StickerPicker.Core.Json;
 /// </summary>
 public static class AtomicJson
 {
-    public static readonly JsonSerializerOptions Options = new()
+    private static readonly JsonSerializerOptions s_options = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -31,7 +31,7 @@ public static class AtomicJson
         try
         {
             var json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<T>(json, Options)
+            return JsonSerializer.Deserialize<T>(json, s_options)
                 ?? throw new JsonException("Deserialized null document.");
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
@@ -52,7 +52,7 @@ public static class AtomicJson
             Directory.CreateDirectory(dir);
         }
 
-        var json = JsonSerializer.Serialize(value, Options);
+        var json = JsonSerializer.Serialize(value, s_options);
         var temp = path + ".tmp";
         File.WriteAllText(temp, json);
 

@@ -49,10 +49,10 @@ internal sealed class LibraryScanner(IAppPaths paths, LibraryIndexStore index)
             .ToList();
 
         var categories = new List<Category> { Category.All(orderedStickers.Count) };
-        foreach (var name in categoryCounts.Keys.Order(StringComparer.OrdinalIgnoreCase))
-        {
-            categories.Add(Category.FromFolder(name, categoryCounts[name]));
-        }
+        categories.AddRange(
+            categoryCounts.Keys
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .Select(name => Category.FromFolder(name, categoryCounts[name])));
 
         return (categories, orderedStickers);
     }

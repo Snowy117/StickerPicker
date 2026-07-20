@@ -18,10 +18,12 @@ public partial class StickerTile : UserControl
             return;
         }
 
-        if (DataContext is StickerItemViewModel item && item.SelectCommand.CanExecute(item))
+        if (DataContext is not StickerItemViewModel item || !item.SelectCommand.CanExecute(item))
         {
-            item.SelectCommand.Execute(item);
-            e.Handled = true;
+            return;
         }
+
+        item.SelectCommand.Execute(item);
+        e.Handled = true;
     }
 }

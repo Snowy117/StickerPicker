@@ -261,12 +261,14 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
-            var delta = e.Delta.Y > 0 ? 8 : -8;
-            vm.AdjustThumbnailCommand.Execute(delta);
-            e.Handled = true;
+            return;
         }
+
+        var delta = e.Delta.Y > 0 ? 8 : -8;
+        vm.AdjustThumbnailCommand.Execute(delta);
+        e.Handled = true;
     }
 
     private void OnHotkeyGestureCaptured(object? sender, RoutedEventArgs e)

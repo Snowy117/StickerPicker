@@ -36,8 +36,8 @@ public partial class App : Application
     }
 
     public IRelayCommand? ShowWindowCommand { get; private set; }
-    public IRelayCommand? ExitCommand { get; private set; }
-    public IRelayCommand? OpenSettingsCommand { get; private set; }
+    private IRelayCommand? ExitCommand { get; set; }
+    private IRelayCommand? OpenSettingsCommand { get; set; }
     public NativeMenu? TrayMenu { get; private set; }
 
     private void ConfigureDesktop(IClassicDesktopStyleApplicationLifetime desktop)
@@ -110,7 +110,7 @@ public partial class App : Application
             }
 
             var config = _mainViewModel.CurrentConfig;
-            if (config.Window.Width > 0 && config.Window.Height > 0)
+            if (config.Window is { Width: > 0, Height: > 0 })
             {
                 mainWindow.Width = config.Window.Width;
                 mainWindow.Height = config.Window.Height;
@@ -124,9 +124,9 @@ public partial class App : Application
     private void OnMainViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (string.Equals(e.PropertyName, nameof(MainViewModel.Theme), StringComparison.Ordinal)
-            && _mainViewModel is not null)
+            && _mainViewModel is { Theme: var theme })
         {
-            ApplyTheme(_mainViewModel.Theme);
+            ApplyTheme(theme);
         }
     }
 

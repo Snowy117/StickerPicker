@@ -50,13 +50,8 @@ public partial class HotkeyCaptureBox : UserControl
     {
         base.OnKeyDown(e);
 
-        if (HotkeyGestureFormatter.IsModifierOnly(e.Key))
-        {
-            e.Handled = true;
-            return;
-        }
-
-        if (!HotkeyGestureFormatter.TryFormat(e.Key, e.KeyModifiers, out var gesture))
+        if (HotkeyGestureFormatter.IsModifierOnly(e.Key)
+            || !HotkeyGestureFormatter.TryFormat(e.Key, e.KeyModifiers, out var gesture))
         {
             e.Handled = true;
             return;

@@ -72,14 +72,14 @@ internal sealed class LibraryImporter(IAppPaths paths, LibraryIndexStore index)
 
     private string ResolveImportCategory(string? targetCategoryId)
     {
-        if (string.IsNullOrWhiteSpace(targetCategoryId)
-            || string.Equals(targetCategoryId, Category.AllId, StringComparison.Ordinal))
+        if (!string.IsNullOrWhiteSpace(targetCategoryId)
+            && !string.Equals(targetCategoryId, Category.AllId, StringComparison.Ordinal))
         {
-            var inbox = Path.Combine(_paths.LibraryRoot, Category.InboxName);
-            Directory.CreateDirectory(inbox);
-            return Category.InboxName;
+            return LibraryPathRules.NormalizeCategoryName(targetCategoryId);
         }
 
-        return LibraryPathRules.NormalizeCategoryName(targetCategoryId);
+        var inbox = Path.Combine(_paths.LibraryRoot, Category.InboxName);
+        Directory.CreateDirectory(inbox);
+        return Category.InboxName;
     }
 }

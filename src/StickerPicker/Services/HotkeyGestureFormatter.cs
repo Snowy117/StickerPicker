@@ -58,32 +58,24 @@ public static class HotkeyGestureFormatter
 
     private static bool TryMapKey(Key key, out string token)
     {
-        token = "";
-        if (key is >= Key.A and <= Key.Z)
+        switch (key)
         {
-            token = ((char)('A' + (key - Key.A))).ToString();
-            return true;
+            case >= Key.A and <= Key.Z:
+                token = ((char)('A' + (key - Key.A))).ToString();
+                return true;
+            case >= Key.D0 and <= Key.D9:
+                token = ((char)('0' + (key - Key.D0))).ToString();
+                return true;
+            case >= Key.NumPad0 and <= Key.NumPad9:
+                token = ((char)('0' + (key - Key.NumPad0))).ToString();
+                return true;
+            case >= Key.F1 and <= Key.F24:
+                var functionIndex = key - Key.F1 + 1;
+                token = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"F{functionIndex}");
+                return true;
+            default:
+                token = "";
+                return false;
         }
-
-        if (key is >= Key.D0 and <= Key.D9)
-        {
-            token = ((char)('0' + (key - Key.D0))).ToString();
-            return true;
-        }
-
-        if (key is >= Key.NumPad0 and <= Key.NumPad9)
-        {
-            token = ((char)('0' + (key - Key.NumPad0))).ToString();
-            return true;
-        }
-
-        if (key is >= Key.F1 and <= Key.F24)
-        {
-            var functionIndex = key - Key.F1 + 1;
-            token = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"F{functionIndex}");
-            return true;
-        }
-
-        return false;
     }
 }

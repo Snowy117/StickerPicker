@@ -48,11 +48,13 @@ public sealed class AvaloniaWindowChromeService : IWindowChromeService
 
             var topmost = _window.Topmost;
             _window.Activate();
-            if (topmost)
+            if (!topmost)
             {
-                _window.Topmost = false;
-                _window.Topmost = true;
+                return;
             }
+
+            _window.Topmost = false;
+            _window.Topmost = true;
         });
     }
 

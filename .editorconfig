@@ -202,6 +202,22 @@ dotnet_diagnostic.MA0204.severity = none
 dotnet_diagnostic.RCS1043.severity = none
 # Controls（SettingsPanel/StickerTile 等）同样使用路由事件处理器，需要 async void。
 dotnet_diagnostic.VSTHRD100.severity = none
+# jb AsyncVoidEventHandlerMethod：Avalonia 路由事件处理器签名要求 async void（框架约定）。
+resharper_async_void_event_handler_method_highlighting = none
+
+# Avalonia Views 代码后置：同上，路由事件处理器必须 async void。
+[src/StickerPicker/Views/**.cs]
+resharper_async_void_event_handler_method_highlighting = none
+
+# App.axaml.cs：partial 由 AXAML 代码生成补齐（另一半个 partial），jb 看不到生成部分。
+[src/StickerPicker/App.axaml.cs]
+resharper_partial_type_with_single_part_highlighting = none
+
+# HotkeyCaptureBox：GestureCapturedEvent 是 Avalonia 路由事件字段（公共 API 约定，供外部 CLR 事件包装订阅），
+# jb 误报可降为 private；UseNullPropagation 对赋值左侧无法应用（C# 不支持 ?. 赋值）。
+[src/StickerPicker/Controls/HotkeyCaptureBox.axaml.cs]
+resharper_member_can_be_private_global_highlighting = none
+resharper_use_null_propagation_highlighting = none
 
 # Win32 平台适配：
 # - S1450：WndProc 委托必须保存在字段上，防止 GC 回收导致崩溃。
@@ -211,6 +227,39 @@ dotnet_diagnostic.VSTHRD100.severity = none
 dotnet_diagnostic.S1450.severity = none
 dotnet_diagnostic.IDE1006.severity = none
 dotnet_diagnostic.SYSLIB1054.severity = none
+
+# ViewModel 属性：CTMV [ObservableProperty] / 手写属性多由 XAML 反射绑定消费，
+# jb 的 UnusedMember.Global / MemberCanBePrivate.Global 对此类数据表面误报。
+# 这些属性是 VM 公共数据契约，不能删也不能降为 private（会破坏绑定）。
+[src/StickerPicker/ViewModels/**.cs]
+resharper_unused_member_global_highlighting = none
+resharper_member_can_be_private_global_highlighting = none
+
+# JSON 反序列化文档（MetadataDocument/HashesDocument/BootstrapDocument 等）：
+# 属性由 System.Text.Json 反射读写，jb 看不到消费点；init/set 必须保留以支持反序列化。
+[src/StickerPicker.Core/Library/**.cs]
+resharper_unused_member_global_highlighting = none
+resharper_unused_auto_property_accessor_global_highlighting = none
+resharper_auto_property_can_be_made_get_only_global_highlighting = none
+resharper_property_can_be_made_init_only_global_highlighting = none
+# jb CanSimplifyDictionaryRemovingWithSingleCall：MoveMetadataKey 是 TryGetValue + Remove + 重新插入的重命名模式
+# （需保留原 entry 对象的 Hash/Tags），无法用单次 Remove 表达。
+resharper_can_simplify_dictionary_removing_with_single_call_highlighting = none
+[src/StickerPicker.Core/Paths/**.cs]
+resharper_property_can_be_made_init_only_local_highlighting = none
+[src/StickerPicker.Core/Models/**.cs]
+resharper_unused_member_global_highlighting = none
+resharper_unused_auto_property_accessor_global_highlighting = none
+
+# LibraryPathRules.Filter：categoryId 与 searchText 过滤为顺序串联 if， jb InvertIf 在此不改善可读性
+# （反转后产生空 then 分支或提早 return 跳过后续过滤）。
+[src/StickerPicker.Core/Library/LibraryPathRules.cs]
+resharper_invert_if_highlighting = none
+
+# ConfigStore.MergeDefaults：config.Window ??= 对 NRT 标注看似冗余，
+# 实为防御 JSON 反序列化注入 null 的运行时场景（NRT 无法表达）。
+[src/StickerPicker.Core/Config/**.cs]
+resharper_null_coalescing_condition_is_always_not_null_according_to_api_contract_highlighting = none
 
 # 测试树 tests/**：测试 fixture / fake / 场景与下列规则系统冲突——反射驱动的未用构造/属性
 # （S1144/S3459/S3237）、断言经异常或副作用的用例（S2699）、测试替身的重载/同名参数（S927/S4136/S4144）、
@@ -245,6 +294,12 @@ dotnet_diagnostic.MA0040.severity = none
 dotnet_diagnostic.MA0182.severity = none
 # MA0042（偏好 async IO API）：测试 fixture 刻意用同步写临时文件，异步无收益。
 dotnet_diagnostic.MA0042.severity = none
+# jb MethodHasAsyncOverload：测试刻意调用同步 API 以断言同步路径行为。
+resharper_method_has_async_overload_highlighting = none
+# jb PropertyCanBeMadeInitOnly.Local：测试 fixture DTO（如 SampleDoc）由 JSON 序列化往返，需保留 set。
+resharper_property_can_be_made_init_only_local_highlighting = none
+# jb UnusedMember.Global：测试 helper（如 TestSupport.WriteUniquePng）属 fixture 公共 API，供多场景调用。
+resharper_unused_member_global_highlighting = none
 
 # These xUnit analyzers were disabled temporarily to let us move to the
 # new xUnit and get past several component governance issues. The
@@ -343,6 +398,20 @@ csharp_preserve_single_line_statements = true
 # 故直接用 _highlighting 键禁用这两条检查，使其与代码库 de facto 风格一致。
 resharper_arrange_trailing_comma_in_multiline_lists_highlighting = none
 resharper_arrange_trailing_comma_in_singleline_lists_highlighting = none
+
+# jb inspectcode 项目级抑制：以下 R# TypeId 对应的检查与本项目架构/技术栈根本不兼容，
+# 无法靠改代码消除，故用 resharper_<type_id>_highlighting = none 全局禁用。
+#
+# UnusedMemberInSuper.Global：接口成员"仅实现被使用，基类型未被访问"对接口定义无意义——
+# 接口是契约，不应因当前调用点形态而被删。
+resharper_unused_member_in_super_global_highlighting = none
+#
+# ReplaceWithPrimaryConstructorParameter：风格重构会降低构造函数参数与字段的对应可读性。
+resharper_replace_with_primary_constructor_parameter_highlighting = none
+#
+# ConvertToStaticClass / ClassNeverInstantiated.Global / ArrangeTypeModifiers：
+# Program 入口点类仅含 static Main，已显式 internal static。
+# （这三条单独文件级处理，不全局禁用。）
 
 # IDE0060: Remove unused parameter
 dotnet_diagnostic.IDE0060.severity = warning

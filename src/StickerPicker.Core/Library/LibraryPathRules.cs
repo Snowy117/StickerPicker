@@ -5,7 +5,7 @@ namespace StickerPicker.Core.Library;
 
 internal static class LibraryPathRules
 {
-    public static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> s_supportedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png", ".jpg", ".jpeg", ".gif", ".webp",
     };
@@ -18,7 +18,7 @@ internal static class LibraryPathRules
     };
 
     public static bool IsSupportedImage(string path) =>
-        SupportedExtensions.Contains(Path.GetExtension(path));
+        s_supportedExtensions.Contains(Path.GetExtension(path));
 
     public static string NormalizeCategoryName(string name)
     {
@@ -121,20 +121,10 @@ internal static class LibraryPathRules
         }
     }
 
-    public static bool MatchesSearch(Sticker sticker, string term)
-    {
-        if (sticker.FileName.Contains(term, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (sticker.RelativePath.Contains(term, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return sticker.Tags.Any(t => t.Contains(term, StringComparison.OrdinalIgnoreCase));
-    }
+    private static bool MatchesSearch(Sticker sticker, string term) =>
+        sticker.FileName.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || sticker.RelativePath.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || sticker.Tags.Any(t => t.Contains(term, StringComparison.OrdinalIgnoreCase));
 
     public static IReadOnlyList<Sticker> Filter(
         IEnumerable<Sticker> stickers,
@@ -154,10 +144,7 @@ internal static class LibraryPathRules
         {
             var terms = searchText
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            foreach (var term in terms)
-            {
-                query = query.Where(s => MatchesSearch(s, term));
-            }
+            query = terms.Aggregate(query, (current, term) => current.Where(s => MatchesSearch(s, term)));
         }
 
         return [.. query];

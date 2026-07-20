@@ -77,11 +77,13 @@ public sealed class WindowsHotkeyService : IHotkeyService
             return;
         }
 
-        if (RegisterHotKey(_hwnd, HotkeyId, prevMods | ModNorepeat, prevKey))
+        if (!RegisterHotKey(_hwnd, HotkeyId, prevMods | ModNorepeat, prevKey))
         {
-            _registered = true;
-            _activeGesture = previousGesture;
+            return;
         }
+
+        _registered = true;
+        _activeGesture = previousGesture;
     }
 
     private void OnNativeHotkey()
@@ -89,7 +91,7 @@ public sealed class WindowsHotkeyService : IHotkeyService
         Dispatcher.UIThread.Post(() => HotkeyPressed?.Invoke(this, EventArgs.Empty));
     }
 
-    internal static bool TryParseGesture(string gesture, out uint modifiers, out uint virtualKey)
+    private static bool TryParseGesture(string gesture, out uint modifiers, out uint virtualKey)
     {
         modifiers = 0;
         virtualKey = 0;
@@ -104,12 +106,8 @@ public sealed class WindowsHotkeyService : IHotkeyService
             return false;
         }
 
-        if (!TrySplitModifiersAndKey(parts, out modifiers, out var keyPart))
-        {
-            return false;
-        }
-
-        return TryMapKeyToken(keyPart, out virtualKey);
+        return TrySplitModifiersAndKey(parts, out modifiers, out var keyPart)
+            && TryMapKeyToken(keyPart, out virtualKey);
     }
 
     private static bool TrySplitModifiersAndKey(string[] parts, out uint modifiers, out string keyPart)
@@ -195,29 +193,29 @@ public sealed class WindowsHotkeyService : IHotkeyService
 internal static class NativeMessageWindow
 {
     private const int WmHotkey = 0x0312;
-    private static IntPtr _hwnd;
-    private static WndProc? _wndProc;
-    private static Action? _onHotkey;
-    private static readonly Lock Gate = new();
+    private static IntPtr s_hwnd;
+    private static WndProc? s_wndProc;
+    private static Action? s_onHotkey;
+    private static readonly Lock s_gate = new();
 
     public static IntPtr Ensure(Action onHotkey)
     {
-        lock (Gate)
+        lock (s_gate)
         {
-            _onHotkey = onHotkey;
-            if (_hwnd != IntPtr.Zero)
+            s_onHotkey = onHotkey;
+            if (s_hwnd != IntPtr.Zero)
             {
-                return _hwnd;
+                return s_hwnd;
             }
 
-            _wndProc = WndProcImpl;
-            const string className = "StickerPickerHotkeyHiddenWindow";
+            s_wndProc = WndProcImpl;
+            const string ClassName = "StickerPickerHotkeyHiddenWindow";
             var wc = new WndClassEx
             {
                 cbSize = (uint)Marshal.SizeOf<WndClassEx>(),
-                lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_wndProc),
+                lpfnWndProc = Marshal.GetFunctionPointerForDelegate(s_wndProc),
                 hInstance = GetModuleHandle(lpModuleName: null),
-                lpszClassName = className,
+                lpszClassName = ClassName,
             };
 
             var atom = RegisterClassEx(ref wc);
@@ -230,9 +228,9 @@ internal static class NativeMessageWindow
                 }
             }
 
-            _hwnd = CreateWindowEx(
+            s_hwnd = CreateWindowEx(
                 0,
-                className,
+                ClassName,
                 "StickerPickerHotkey",
                 0,
                 0, 0, 0, 0,
@@ -241,19 +239,19 @@ internal static class NativeMessageWindow
                 wc.hInstance,
                 IntPtr.Zero);
 
-            return _hwnd;
+            return s_hwnd;
         }
     }
 
     private static IntPtr WndProcImpl(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
-        if (msg == WmHotkey)
+        if (msg != WmHotkey)
         {
-            _onHotkey?.Invoke();
-            return IntPtr.Zero;
+            return DefWindowProc(hWnd, msg, wParam, lParam);
         }
 
-        return DefWindowProc(hWnd, msg, wParam, lParam);
+        s_onHotkey?.Invoke();
+        return IntPtr.Zero;
     }
 
     private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);

@@ -6,41 +6,33 @@ namespace StickerPicker.Core.Paths;
 public sealed class AppPaths : IAppPaths
 {
     private readonly string? _overrideDefaultAppFolder;
-    private string _dataRoot;
 
     public AppPaths(string? overrideDefaultAppFolder = null)
     {
         _overrideDefaultAppFolder = overrideDefaultAppFolder;
         DefaultAppFolder = ResolveDefaultAppFolder();
         BootstrapPath = Path.Combine(DefaultAppFolder, "bootstrap.json");
-        _dataRoot = DefaultAppFolder;
+        DataRoot = DefaultAppFolder;
         Resolve();
     }
 
     public string DefaultAppFolder { get; }
     public string BootstrapPath { get; }
-    public string DataRoot => _dataRoot;
-    public string LibraryRoot => Path.Combine(_dataRoot, "library");
-    public string ConfigPath => Path.Combine(_dataRoot, "config.json");
-    public string MetadataPath => Path.Combine(_dataRoot, "metadata.json");
-    public string HashesPath => Path.Combine(_dataRoot, "hashes.json");
+    public string DataRoot { get; private set; }
+    public string LibraryRoot => Path.Combine(DataRoot, "library");
+    public string ConfigPath => Path.Combine(DataRoot, "config.json");
+    public string MetadataPath => Path.Combine(DataRoot, "metadata.json");
+    public string HashesPath => Path.Combine(DataRoot, "hashes.json");
 
     public string Resolve()
     {
         Directory.CreateDirectory(DefaultAppFolder);
 
         var custom = ReadBootstrapDataRoot();
-        if (!string.IsNullOrWhiteSpace(custom))
-        {
-            _dataRoot = Path.GetFullPath(custom);
-        }
-        else
-        {
-            _dataRoot = DefaultAppFolder;
-        }
+        DataRoot = !string.IsNullOrWhiteSpace(custom) ? Path.GetFullPath(custom) : DefaultAppFolder;
 
         EnsureDataLayout();
-        return _dataRoot;
+        return DataRoot;
     }
 
     public void SetDataRoot(string? customDataRoot)
@@ -55,20 +47,20 @@ public sealed class AppPaths : IAppPaths
                 File.Delete(BootstrapPath);
             }
 
-            _dataRoot = DefaultAppFolder;
+            DataRoot = DefaultAppFolder;
             EnsureDataLayout();
             return;
         }
 
         var full = Path.GetFullPath(customDataRoot);
         AtomicJson.Save(BootstrapPath, new BootstrapDocument { DataRoot = full });
-        _dataRoot = full;
+        DataRoot = full;
         EnsureDataLayout();
     }
 
     public void EnsureDataLayout()
     {
-        Directory.CreateDirectory(_dataRoot);
+        Directory.CreateDirectory(DataRoot);
         Directory.CreateDirectory(LibraryRoot);
     }
 

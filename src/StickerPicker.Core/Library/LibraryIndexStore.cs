@@ -8,8 +8,8 @@ internal sealed class LibraryIndexStore(IAppPaths paths)
 {
     private readonly IAppPaths _paths = paths;
 
-    public MetadataDocument Metadata { get; private set; } = new();
-    public HashesDocument Hashes { get; private set; } = new();
+    private MetadataDocument Metadata { get; set; } = new();
+    private HashesDocument Hashes { get; set; } = new();
 
     public void Load()
     {
