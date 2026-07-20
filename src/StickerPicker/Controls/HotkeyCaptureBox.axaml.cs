@@ -8,6 +8,10 @@ namespace StickerPicker.Controls;
 
 public partial class HotkeyCaptureBox : UserControl
 {
+    private const string ListeningPseudoClass = ":listening";
+    private const string ListeningIdleText = "按下组合键…";
+    private const string IdleText = "点击后按下快捷键";
+
     public static readonly StyledProperty<string?> GestureProperty =
         AvaloniaProperty.Register<HotkeyCaptureBox, string?>(
             nameof(Gesture),
@@ -46,6 +50,22 @@ public partial class HotkeyCaptureBox : UserControl
         }
     }
 
+    protected override void OnGotFocus(FocusChangedEventArgs e)
+    {
+        base.OnGotFocus(e);
+        var listening = string.IsNullOrWhiteSpace(Gesture);
+        PseudoClasses.Set(ListeningPseudoClass, listening);
+        UpdateDisplay();
+    }
+
+    protected override void OnLostFocus(FocusChangedEventArgs e)
+    {
+        base.OnLostFocus(e);
+        const bool Listening = false;
+        PseudoClasses.Set(ListeningPseudoClass, Listening);
+        UpdateDisplay();
+    }
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
@@ -58,6 +78,8 @@ public partial class HotkeyCaptureBox : UserControl
         }
 
         Gesture = gesture;
+        const bool Listening = false;
+        PseudoClasses.Set(ListeningPseudoClass, Listening);
         RaiseEvent(new RoutedEventArgs(GestureCapturedEvent));
         e.Handled = true;
     }
@@ -75,8 +97,12 @@ public partial class HotkeyCaptureBox : UserControl
             return;
         }
 
-        Display.Text = string.IsNullOrWhiteSpace(Gesture)
-            ? "点击后按下快捷键"
-            : Gesture;
+        if (!string.IsNullOrWhiteSpace(Gesture))
+        {
+            Display.Text = Gesture;
+            return;
+        }
+
+        Display.Text = IsFocused ? ListeningIdleText : IdleText;
     }
 }

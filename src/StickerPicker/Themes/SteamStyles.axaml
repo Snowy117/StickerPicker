@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:StickerPicker.Controls">
 
   <!-- ============================================================ -->
   <!-- Window & Text                                                -->
@@ -160,6 +161,31 @@
   </Style>
   <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
     <Setter Property="BorderBrush" Value="{DynamicResource SteamAccentBrush}" />
+  </Style>
+
+  <!-- ============================================================ -->
+  <!-- HotkeyCaptureBox — listening state feedback                  -->
+  <!-- ============================================================ -->
+  <Style Selector="controls|HotkeyCaptureBox:focus /template/ Border#CaptureBorder">
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamAccentBrush}" />
+    <Setter Property="BorderThickness" Value="2" />
+  </Style>
+  <Style Selector="controls|HotkeyCaptureBox.listening /template/ Border#CaptureBorder">
+    <Setter Property="BorderBrush" Value="{DynamicResource SteamAccentBrush}" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Style.Animations>
+      <Animation Duration="0:0:0.9" IterationCount="INFINITE">
+        <KeyFrame Cue="0%">
+          <Setter Property="BoxShadow" Value="0 0 0 2 {DynamicResource SteamAccentBrush}" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="BoxShadow" Value="0 0 0 4 {DynamicResource SteamAccentBrush}" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="0 0 0 2 {DynamicResource SteamAccentBrush}" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
   </Style>
 
   <!-- ============================================================ -->
