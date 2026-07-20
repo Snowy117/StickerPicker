@@ -76,3 +76,26 @@ ctor.
 `App.axaml.cs` assigns `MainWindow.DataContext` **after** `new MainWindow()`.
 Code-behind that reads `DataContext` in the ctor sees `null`. Subscribe to
 `DataContextChanged` and (re)attach any VM event handlers there.
+
+### TrayIcon bindings on a non-INPC Application
+
+`TrayIcon` declared in `App.axaml` under `TrayIcon.Icons` resolves
+`{Binding}` against `Application.DataContext` at XAML load time. `App` is not
+`INotifyPropertyChanged`, and the bound properties (`TrayMenu`, commands)
+are usually built later in `OnFrameworkInitializationCompleted`, so the
+binding evaluates once against `null` and the tray right-click menu never
+appears. Do NOT bind `Command`/`Menu` in XAML — assign them imperatively
+after constructing the menu:
+
+```csharp
+var icon = TrayIcon.GetIcons(this)?.FirstOrDefault();
+if (icon is not null) { icon.Command = ...; icon.Menu = ...; }
+```
+
+(Note: `x:Name` is NOT supported on `TrayIcon` — AVLN2000.)
+
+### WindowDecorations replaces SystemDecorations
+
+`Window.SystemDecorations` is obsolete in Avalonia 12.x. Use the static
+`WindowDecorations` enum: `WindowDecorations = WindowDecorations.None`
+(qualify with the type name — the members are static fields, not instance).
