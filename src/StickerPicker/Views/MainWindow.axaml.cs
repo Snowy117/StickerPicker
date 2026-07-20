@@ -17,6 +17,8 @@ public partial class MainWindow : Window
         RegisterStickerActionHandlers();
         RegisterHoverHandlers();
         RegisterSettingsAnimationHandlers();
+        ImportFilesItem.Click += (_, e) => OnImportFilesClick(this, e);
+        ImportFolderItem.Click += (_, e) => OnImportFolderClick(this, e);
         StickerScroll.AddHandler(
             PointerWheelChangedEvent,
             OnStickerScrollWheel,
@@ -44,6 +46,12 @@ public partial class MainWindow : Window
 
         e.Cancel = true;
         Hide();
+    }
+
+    private void OnImportClick(object? sender, RoutedEventArgs e)
+    {
+        ImportButton.ContextMenu?.Open(ImportButton);
+        e.Handled = true;
     }
 
     private async void OnImportFilesClick(object? sender, RoutedEventArgs e)
