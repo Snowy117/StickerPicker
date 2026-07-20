@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using StickerPicker.ViewModels;
@@ -18,14 +19,25 @@ public partial class MainWindow
 
     private void OnGlobalTextInput(object? sender, TextInputEventArgs e)
     {
-        if (SearchBox.IsFocused
-            || DataContext is not MainViewModel vm
-            || string.IsNullOrEmpty(e.Text))
+        if (string.IsNullOrEmpty(e.Text))
+        {
+            return;
+        }
+
+        // Any editable control already holding focus should receive the text
+        // itself; do not hijack typing aimed at the tag editor, hotkey box, etc.
+        if (FocusManager?.GetFocusedElement() is TextBox)
+        {
+            return;
+        }
+
+        if (DataContext is not MainViewModel vm)
         {
             return;
         }
 
         SearchBox.Focus();
+        SearchBox.CaretIndex = SearchBox.Text?.Length ?? 0;
         vm.SearchText += e.Text;
         e.Handled = true;
     }

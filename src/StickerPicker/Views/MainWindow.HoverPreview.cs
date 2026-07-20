@@ -54,9 +54,9 @@ public partial class MainWindow
 
     private void ApplyHoverPreviewOpacity(double opacity)
     {
-        if (_hoverPreviewBorder is { } border)
+        if (_hoverPreviewImage is { } image)
         {
-            border.Opacity = opacity;
+            image.Opacity = opacity;
         }
     }
 
@@ -203,12 +203,17 @@ public partial class MainWindow
         }
 
         var opacity = DataContext is MainViewModel vm ? vm.Settings.PreviewOpacity : 0.92;
-        _hoverPreviewImage = new Image { Stretch = Stretch.Uniform };
+        _hoverPreviewImage = new Image
+        {
+            Stretch = Stretch.Uniform,
+            Opacity = opacity,
+        };
         var app = Application.Current;
+        // Transparent background: the preview must not occlude other apps behind it.
+        // Opacity is driven by the image itself so the slider actually reveals content below.
         _hoverPreviewBorder = new Border
         {
-            Opacity = opacity,
-            Background = app?.FindResource("SteamPanelBrush") as IBrush,
+            Background = Brushes.Transparent,
             BorderBrush = app?.FindResource("SteamBorderBrush") as IBrush,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(4),
