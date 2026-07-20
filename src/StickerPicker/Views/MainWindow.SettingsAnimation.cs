@@ -55,12 +55,14 @@ public partial class MainWindow
         _overlayCloseTimer?.Stop();
         _overlayCloseTimer = null;
         OverlayMask.IsVisible = true;
-        Dispatcher.UIThread.Post(() => OverlayCard.Opacity = 1);
+        // Fade the mask, not the card: child controls carry their own BrushTransitions
+        // and would animate staggered if the card Opacity changed independently.
+        Dispatcher.UIThread.Post(() => OverlayMask.Opacity = 1);
     }
 
     private void CloseOverlay()
     {
-        OverlayCard.Opacity = 0;
+        OverlayMask.Opacity = 0;
         _overlayCloseTimer?.Stop();
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(OverlayAnimationMs) };
         timer.Tick += (_, _) =>

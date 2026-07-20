@@ -172,20 +172,20 @@
     <Border x:Name="OverlayMask"
             IsVisible="False"
             Background="#B3000000"
-            ZIndex="10">
+            ZIndex="10"
+            Opacity="0">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.16" />
+        </Transitions>
+      </Border.Transitions>
       <Border x:Name="OverlayCard"
               Classes="panel"
               Width="460"
               HorizontalAlignment="Center"
               VerticalAlignment="Center"
               BorderThickness="1"
-              Padding="0"
-              Opacity="0">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-          </Transitions>
-        </Border.Transitions>
+              Padding="0">
         <DockPanel>
           <!-- Settings header -->
           <Border DockPanel.Dock="Top"
