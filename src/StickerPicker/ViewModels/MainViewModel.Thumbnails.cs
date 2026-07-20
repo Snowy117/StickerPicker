@@ -9,6 +9,7 @@ public partial class MainViewModel
         ? StringComparer.OrdinalIgnoreCase
         : StringComparer.Ordinal;
     private readonly HashSet<StickerItemViewModel> _activeStickers = [];
+    private bool _isThumbnailSurfaceVisible;
 
     public void SetThumbnailActive(StickerItemViewModel item, bool isActive)
     {
@@ -22,7 +23,21 @@ public partial class MainViewModel
             _activeStickers.Remove(item);
         }
 
-        item.SetThumbnailActive(isActive);
+        item.SetThumbnailActive(isActive && _isThumbnailSurfaceVisible);
+    }
+
+    public void SetThumbnailSurfaceVisible(bool isVisible)
+    {
+        if (_isThumbnailSurfaceVisible == isVisible)
+        {
+            return;
+        }
+
+        _isThumbnailSurfaceVisible = isVisible;
+        foreach (var sticker in _activeStickers)
+        {
+            sticker.SetThumbnailActive(isVisible);
+        }
     }
 
     partial void OnSearchTextChanged(string value)

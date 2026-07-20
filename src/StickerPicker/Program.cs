@@ -13,11 +13,27 @@ internal static class Program
 
     // Avalonia configuration, don't remove; also used by visual designer.
     private static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-#if DEBUG
-            .WithDeveloperTools()
-#endif
+    {
+        var builder = AppBuilder.Configure<App>()
+            .UsePlatformDetect();
+        builder
             .WithInterFont()
             .LogToTrace();
+
+        if (OperatingSystem.IsWindows()
+            && !string.Equals(
+                Environment.GetEnvironmentVariable("STICKERPICKER_USE_GPU"),
+                "1",
+                StringComparison.Ordinal))
+        {
+            builder.With(new Win32PlatformOptions
+            {
+                // This app renders a small, mostly static surface. Software rendering avoids
+                // keeping ANGLE, D3D, and a vendor GPU driver's large process-wide baseline.
+                RenderingMode = [Win32RenderingMode.Software],
+            });
+        }
+
+        return builder;
+    }
 }

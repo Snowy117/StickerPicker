@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -17,6 +18,7 @@ public partial class MainWindow : Window
         RegisterStickerActionHandlers();
         RegisterHoverHandlers();
         RegisterThumbnailRealizationHandlers();
+        PropertyChanged += OnWindowPropertyChanged;
         RegisterSettingsAnimationHandlers();
         ImportFilesItem.Click += (_, e) => OnImportFilesClick(this, e);
         ImportFolderItem.Click += (_, e) => OnImportFolderClick(this, e);
@@ -25,6 +27,24 @@ public partial class MainWindow : Window
             OnStickerScrollWheel,
             RoutingStrategies.Tunnel,
             handledEventsToo: true);
+    }
+
+    private void OnWindowPropertyChanged(object? _, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != IsVisibleProperty)
+        {
+            return;
+        }
+
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.SetThumbnailSurfaceVisible(IsVisible);
+        }
+
+        if (!IsVisible)
+        {
+            DisposeHoverPreview();
+        }
     }
 
     private void RegisterThumbnailRealizationHandlers()
@@ -241,7 +261,7 @@ public partial class MainWindow : Window
             CanResize = false,
             Content = new StackPanel
             {
-                Margin = new Avalonia.Thickness(16),
+                Margin = new Thickness(16),
                 Spacing = 12,
                 Children =
                 {
@@ -329,7 +349,7 @@ public partial class MainWindow : Window
         ok = new Button { Content = "确定", HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right };
         return new StackPanel
         {
-            Margin = new Avalonia.Thickness(16),
+            Margin = new Thickness(16),
             Spacing = 12,
             Children =
             {

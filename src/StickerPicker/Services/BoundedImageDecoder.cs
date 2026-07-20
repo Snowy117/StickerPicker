@@ -12,7 +12,10 @@ internal static class BoundedImageDecoder
 {
     private const int MinimumSide = 32;
     private const int MaximumSide = 480;
-    private static readonly SemaphoreSlim s_decodeGate = new(initialCount: 3, maxCount: 3);
+    // Some codecs temporarily decode at the source dimensions before scaling.
+    // Serializing this work prevents multiple large native pixel buffers from
+    // establishing a needlessly high process memory watermark.
+    private static readonly SemaphoreSlim s_decodeGate = new(initialCount: 1, maxCount: 1);
 
     public static async Task<Bitmap?> DecodeAsync(
         string path,
