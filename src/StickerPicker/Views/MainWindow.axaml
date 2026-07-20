@@ -17,18 +17,6 @@
   <Panel>
     <DockPanel>
       <!-- ===== Heavy dark header bar (Steam signature) ===== -->
-      <Border DockPanel.Dock="Top" Classes="headerbar" Padding="14,9">
-        <Grid ColumnDefinitions="Auto,*,Auto">
-          <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-            <TextBlock Text="STICKERPICKER" Classes="header" FontSize="14" VerticalAlignment="Center" />
-          </StackPanel>
-          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-            <Button Classes="subtle" Content="刷新" Command="{Binding RefreshLibraryCommand}" />
-            <Button Classes="subtle" Content="设置" Command="{Binding OpenSettingsCommand}" />
-          </StackPanel>
-        </Grid>
-      </Border>
-
       <!-- ===== Status bar (dense, single line) ===== -->
       <Border DockPanel.Dock="Bottom"
               Background="{DynamicResource SteamBgBrush}"
@@ -116,15 +104,25 @@
                 BorderBrush="{DynamicResource SteamBorderSoftBrush}"
                 BorderThickness="0,0,0,1"
                 Padding="10,8">
-          <Grid ColumnDefinitions="*,Auto">
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto">
             <TextBox PlaceholderText="搜索 tag / 文件名"
                      Text="{Binding SearchText}"
                      MinHeight="28" />
             <Button Grid.Column="1"
+                    Classes="subtle"
+                    Content="刷新"
+                    Margin="8,0,0,0"
+                    Command="{Binding RefreshLibraryCommand}" />
+            <Button Grid.Column="2"
+                    Classes="subtle"
+                    Content="设置"
+                    Margin="4,0,0,0"
+                    Command="{Binding OpenSettingsCommand}" />
+            <Button Grid.Column="3"
                     x:Name="ImportButton"
                     Classes="primary"
                     Content="导入 ▾"
-                    Margin="8,0,0,0"
+                    Margin="4,0,0,0"
                     Click="OnImportClick">
               <Button.ContextMenu>
                 <ContextMenu>
