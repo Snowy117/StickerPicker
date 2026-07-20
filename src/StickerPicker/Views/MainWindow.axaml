@@ -118,7 +118,8 @@
                 BorderThickness="0,0,0,1"
                 Padding="10,8">
           <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-            <TextBox PlaceholderText="搜索 tag / 文件名"
+            <TextBox x:Name="SearchBox"
+                     PlaceholderText="搜索 tag / 文件名"
                      Text="{Binding SearchText}"
                      MinHeight="28" />
             <Button Grid.Column="1"

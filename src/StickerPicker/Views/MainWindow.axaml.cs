@@ -18,6 +18,7 @@ public partial class MainWindow : Window
         RegisterStickerActionHandlers();
         RegisterHoverHandlers();
         RegisterThumbnailRealizationHandlers();
+        RegisterGlobalTextRouting();
         PropertyChanged += OnWindowPropertyChanged;
         RegisterSettingsAnimationHandlers();
         ImportFilesItem.Click += (_, e) => OnImportFilesClick(this, e);
