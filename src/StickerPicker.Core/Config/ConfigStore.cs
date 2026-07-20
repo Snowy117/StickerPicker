@@ -14,6 +14,7 @@ public sealed class ConfigStore(IAppPaths paths) : IConfigStore
         var loaded = AtomicJson.LoadOrCreate(
             _paths.ConfigPath,
             () => new AppConfig(),
+            CoreJsonContext.Default.AppConfig,
             onCorrupt: null);
         return MergeDefaults(loaded);
     }
@@ -23,7 +24,7 @@ public sealed class ConfigStore(IAppPaths paths) : IConfigStore
         ArgumentNullException.ThrowIfNull(config);
         _paths.EnsureDataLayout();
         var toSave = MergeDefaults(config.Clone());
-        AtomicJson.Save(_paths.ConfigPath, toSave);
+        AtomicJson.Save(_paths.ConfigPath, toSave, CoreJsonContext.Default.AppConfig);
     }
 
     private static AppConfig MergeDefaults(AppConfig config)

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace StickerPicker.Core.Json;
 
@@ -8,30 +8,24 @@ namespace StickerPicker.Core.Json;
 /// </summary>
 public static class AtomicJson
 {
-    private static readonly JsonSerializerOptions s_options = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-    };
-
-    public static T LoadOrCreate<T>(string path, Func<T> factory, Action<string, Exception>? onCorrupt = null)
+    public static T LoadOrCreate<T>(
+        string path,
+        Func<T> factory,
+        JsonTypeInfo<T> typeInfo,
+        Action<string, Exception>? onCorrupt = null)
         where T : class
     {
         if (!File.Exists(path))
         {
             var created = factory();
-            Save(path, created);
+            Save(path, created, typeInfo);
             return created;
         }
 
         try
         {
             var json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<T>(json, s_options)
+            return JsonSerializer.Deserialize(json, typeInfo)
                 ?? throw new JsonException("Deserialized null document.");
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
@@ -39,12 +33,12 @@ public static class AtomicJson
             onCorrupt?.Invoke(path, ex);
             TryBackupCorrupt(path);
             var created = factory();
-            Save(path, created);
+            Save(path, created, typeInfo);
             return created;
         }
     }
 
-    public static void Save<T>(string path, T value)
+    public static void Save<T>(string path, T value, JsonTypeInfo<T> typeInfo)
     {
         var dir = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir))
@@ -52,7 +46,7 @@ public static class AtomicJson
             Directory.CreateDirectory(dir);
         }
 
-        var json = JsonSerializer.Serialize(value, s_options);
+        var json = JsonSerializer.Serialize(value, typeInfo);
         var temp = path + ".tmp";
         File.WriteAllText(temp, json);
 

@@ -13,14 +13,20 @@ internal sealed class LibraryIndexStore(IAppPaths paths)
 
     public void Load()
     {
-        Metadata = AtomicJson.LoadOrCreate(_paths.MetadataPath, () => new MetadataDocument());
-        Hashes = AtomicJson.LoadOrCreate(_paths.HashesPath, () => new HashesDocument());
+        Metadata = AtomicJson.LoadOrCreate(
+            _paths.MetadataPath,
+            () => new MetadataDocument(),
+            CoreJsonContext.Default.MetadataDocument);
+        Hashes = AtomicJson.LoadOrCreate(
+            _paths.HashesPath,
+            () => new HashesDocument(),
+            CoreJsonContext.Default.HashesDocument);
     }
 
     public void Save()
     {
-        AtomicJson.Save(_paths.MetadataPath, Metadata);
-        AtomicJson.Save(_paths.HashesPath, Hashes);
+        AtomicJson.Save(_paths.MetadataPath, Metadata, CoreJsonContext.Default.MetadataDocument);
+        AtomicJson.Save(_paths.HashesPath, Hashes, CoreJsonContext.Default.HashesDocument);
     }
 
     public StickerMetadataEntry GetOrCreateMetadata(string relative, string absolutePath)

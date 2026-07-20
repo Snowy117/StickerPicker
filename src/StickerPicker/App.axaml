@@ -6,10 +6,6 @@
              RequestedThemeVariant="Dark"
              Name="StickerPicker">
 
-  <Application.DataTemplates>
-    <local:ViewLocator />
-  </Application.DataTemplates>
-
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

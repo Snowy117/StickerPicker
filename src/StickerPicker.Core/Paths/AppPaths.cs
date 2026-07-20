@@ -53,7 +53,10 @@ public sealed class AppPaths : IAppPaths
         }
 
         var full = Path.GetFullPath(customDataRoot);
-        AtomicJson.Save(BootstrapPath, new BootstrapDocument { DataRoot = full });
+        AtomicJson.Save(
+            BootstrapPath,
+            new BootstrapDocument { DataRoot = full },
+            CoreJsonContext.Default.BootstrapDocument);
         DataRoot = full;
         EnsureDataLayout();
     }
@@ -95,6 +98,7 @@ public sealed class AppPaths : IAppPaths
             var doc = AtomicJson.LoadOrCreate(
                 BootstrapPath,
                 () => new BootstrapDocument(),
+                CoreJsonContext.Default.BootstrapDocument,
                 onCorrupt: null);
             return string.IsNullOrWhiteSpace(doc.DataRoot) ? null : doc.DataRoot;
         }
@@ -109,9 +113,4 @@ public sealed class AppPaths : IAppPaths
             Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
             Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-
-    private sealed class BootstrapDocument
-    {
-        public string? DataRoot { get; set; }
-    }
 }
