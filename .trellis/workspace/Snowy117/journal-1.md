@@ -84,6 +84,15 @@ Ten independently-committed UX improvements for the StickerPicker desktop client
   method; refactored to a single `OnPropertyChanged` override.
 - consts must be PascalCase (IDE1006).
 - MA0006 requires `string.Equals(..., StringComparison.Ordinal)` over `==`.
+- **CRITICAL (caused startup crash):** `BoxShadow` setter values are parsed
+  at runtime via `BoxShadows.Parse` which treats the string as a literal
+  color — `{DynamicResource}`/`{StaticResource}` markup extensions inside
+  the BoxShadow string do NOT work and throw `FormatException: Invalid color
+  string: '{DynamicResource'` at App.Initialize(). `dotnet build` does NOT
+  catch this (XAML compiles; parsing is deferred to load time). Use a literal
+  hex color (e.g. `0 0 0 2 #66c0f4`). BorderBrush/Background/Foreground setters
+  DO resolve DynamicResource fine — only type-converted string properties
+  (BoxShadow, possibly others) fail. Fix landed in commit c648cca.
 
 **Validation status (all green)**:
 - `dotnet build` 0 warnings/0 errors
