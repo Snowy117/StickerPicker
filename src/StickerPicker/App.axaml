@@ -26,9 +26,7 @@
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="/Assets/avalonia-logo.ico"
-                ToolTipText="StickerPicker"
-                Command="{Binding ShowWindowCommand}"
-                Menu="{Binding TrayMenu}" />
+                ToolTipText="StickerPicker" />
     </TrayIcons>
   </TrayIcon.Icons>
 </Application>

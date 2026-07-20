@@ -71,6 +71,7 @@ public partial class App : Application
 
         DataContext = this;
         WireTrayCommands();
+        AttachTrayIconBindings();
         WireMainWindowOpened(mainWindow);
     }
 
@@ -98,6 +99,15 @@ public partial class App : Application
             new NativeMenuItemSeparator(),
             new NativeMenuItem("退出") { Command = ExitCommand },
         ];
+    }
+
+    private void AttachTrayIconBindings()
+    {
+        if (TrayIcon.GetIcons(this)?.FirstOrDefault() is { } icon)
+        {
+            icon.Command = ShowWindowCommand;
+            icon.Menu = TrayMenu;
+        }
     }
 
     private void WireMainWindowOpened(MainWindow mainWindow)
