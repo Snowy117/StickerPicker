@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/index.md","reason":"Core Quality Check entry point."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Validate atomic persistence, tests, analyzers, and file-size requirements."}
+{"file":".trellis/spec/frontend/index.md","reason":"Desktop Quality Check entry point."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Validate Avalonia/platform behavior and runtime risks."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Ensure no nullable or analyzer bypasses."}
+{"file":".trellis/tasks/07-20-native-aot-publish/research/native-aot.md","reason":"Validate every known AOT blocker and cross-RID limitation."}

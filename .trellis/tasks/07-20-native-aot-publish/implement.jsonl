@@ -1,0 +1,8 @@
+{"file":".trellis/spec/backend/index.md","reason":"Core persistence layer conventions and pre-development checklist."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Atomic JSON, tests, file-size, and Core quality requirements."}
+{"file":".trellis/spec/backend/directory-structure.md","reason":"Core JSON/model module boundaries."}
+{"file":".trellis/spec/frontend/index.md","reason":"Avalonia executable-layer conventions and pre-development checklist."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Desktop UI/platform quality requirements and runtime risks."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Nullable and warning-resolution rules."}
+{"file":".trellis/spec/guides/index.md","reason":"Shared cross-layer and reuse thinking guidance."}
+{"file":".trellis/tasks/07-20-native-aot-publish/research/native-aot.md","reason":"Repository-specific NativeAOT blockers, evidence, compatibility matrix, and risks."}

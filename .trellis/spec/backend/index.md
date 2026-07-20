@@ -19,6 +19,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Error Handling](./error-handling.md) | Error types, handling strategies | Filled (MVP-A baseline) |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | Filled (MVP-A baseline) |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | Filled (MVP-A baseline) |
+| [NativeAOT Persistence](./native-aot-persistence.md) | Source-generated JSON and native publish contract | Filled |
 
 ---
 
