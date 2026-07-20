@@ -158,34 +158,72 @@ public partial class App : Application
 
     private void ApplySteamBrushes(ResourceDictionary resources, bool useDark)
     {
-        void SetBrush(string key, string colorKey)
-        {
-            if (TryGetResource(colorKey, ActualThemeVariant, out var colorObj)
-                && colorObj is Avalonia.Media.Color color)
-            {
-                resources[key] = new Avalonia.Media.SolidColorBrush(color);
-            }
-        }
-
         if (useDark)
         {
-            SetBrush("SteamBgBrush", "SteamDarkBg");
-            SetBrush("SteamPanelBrush", "SteamDarkPanel");
-            SetBrush("SteamPanelAltBrush", "SteamDarkPanelAlt");
-            SetBrush("SteamBorderBrush", "SteamDarkBorder");
-            SetBrush("SteamTextBrush", "SteamDarkText");
-            SetBrush("SteamMutedBrush", "SteamDarkMuted");
-            SetBrush("SteamAccentBrush", "SteamAccent");
+            SetSolidBrush(resources, "SteamBgBrush", "SteamDarkBg");
+            SetSolidBrush(resources, "SteamHeaderBrush", "SteamDarkHeader");
+            SetSolidBrush(resources, "SteamPanelBrush", "SteamDarkPanel");
+            SetSolidBrush(resources, "SteamPanelAltBrush", "SteamDarkPanelAlt");
+            SetSolidBrush(resources, "SteamHoverBrush", "SteamDarkHover");
+            SetSolidBrush(resources, "SteamBorderBrush", "SteamDarkBorder");
+            SetSolidBrush(resources, "SteamBorderSoftBrush", "SteamDarkBorderSoft");
+            SetSolidBrush(resources, "SteamTextBrush", "SteamDarkText");
+            SetSolidBrush(resources, "SteamTextBrightBrush", "SteamDarkTextBright");
+            SetSolidBrush(resources, "SteamMutedBrush", "SteamDarkMuted");
+            SetSolidBrush(resources, "SteamAccentBrush", "SteamAccent");
+            SetSolidBrush(resources, "SteamAccentDimBrush", "SteamAccentDim");
+            SetGradientBrush(resources, "SteamHeaderGradientBrush",
+                "SteamDarkPanel", "SteamDarkBg");
         }
         else
         {
-            SetBrush("SteamBgBrush", "SteamLightBg");
-            SetBrush("SteamPanelBrush", "SteamLightPanel");
-            SetBrush("SteamPanelAltBrush", "SteamLightPanelAlt");
-            SetBrush("SteamBorderBrush", "SteamLightBorder");
-            SetBrush("SteamTextBrush", "SteamLightText");
-            SetBrush("SteamMutedBrush", "SteamLightMuted");
-            SetBrush("SteamAccentBrush", "SteamLightAccent");
+            SetSolidBrush(resources, "SteamBgBrush", "SteamLightBg");
+            SetSolidBrush(resources, "SteamHeaderBrush", "SteamLightHeader");
+            SetSolidBrush(resources, "SteamPanelBrush", "SteamLightPanel");
+            SetSolidBrush(resources, "SteamPanelAltBrush", "SteamLightPanelAlt");
+            SetSolidBrush(resources, "SteamHoverBrush", "SteamLightHover");
+            SetSolidBrush(resources, "SteamBorderBrush", "SteamLightBorder");
+            SetSolidBrush(resources, "SteamBorderSoftBrush", "SteamLightBorderSoft");
+            SetSolidBrush(resources, "SteamTextBrush", "SteamLightText");
+            SetSolidBrush(resources, "SteamTextBrightBrush", "SteamLightTextBright");
+            SetSolidBrush(resources, "SteamMutedBrush", "SteamLightMuted");
+            SetSolidBrush(resources, "SteamAccentBrush", "SteamLightAccent");
+            SetSolidBrush(resources, "SteamAccentDimBrush", "SteamLightAccentDim");
+            SetGradientBrush(resources, "SteamHeaderGradientBrush",
+                "SteamLightHeader", "SteamLightBg");
+        }
+    }
+
+    private void SetSolidBrush(ResourceDictionary resources, string key, string colorKey)
+    {
+        if (TryGetResource(colorKey, ActualThemeVariant, out var colorObj)
+            && colorObj is Avalonia.Media.Color color)
+        {
+            resources[key] = new Avalonia.Media.SolidColorBrush(color);
+        }
+    }
+
+    private void SetGradientBrush(
+        ResourceDictionary resources,
+        string key,
+        string startColorKey,
+        string endColorKey)
+    {
+        if (TryGetResource(startColorKey, ActualThemeVariant, out var startObj)
+            && startObj is Avalonia.Media.Color start
+            && TryGetResource(endColorKey, ActualThemeVariant, out var endObj)
+            && endObj is Avalonia.Media.Color end)
+        {
+            resources[key] = new Avalonia.Media.LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+                GradientStops =
+                {
+                    new Avalonia.Media.GradientStop(start, 0),
+                    new Avalonia.Media.GradientStop(end, 1),
+                },
+            };
         }
     }
 }

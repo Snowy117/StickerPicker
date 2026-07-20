@@ -2,14 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="StickerPicker.Controls.HotkeyCaptureBox"
              Focusable="True">
-  <Border Background="{DynamicResource SteamPanelAltBrush}"
+  <Border x:Name="CaptureBorder"
+          Background="{DynamicResource SteamDarkBg}"
           BorderBrush="{DynamicResource SteamBorderBrush}"
+          CornerRadius="2"
           BorderThickness="1"
-          Padding="8,4"
+          Padding="10,6"
+          MinHeight="28"
           Cursor="Hand"
           PointerPressed="OnBorderPointerPressed">
     <TextBlock x:Name="Display"
                VerticalAlignment="Center"
+               Foreground="{DynamicResource SteamMutedBrush}"
                Text="点击后按下快捷键" />
   </Border>
 </UserControl>

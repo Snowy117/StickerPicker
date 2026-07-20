@@ -200,6 +200,8 @@ dotnet_diagnostic.RCS1043.severity = none
 [src/StickerPicker/Controls/**.cs]
 dotnet_diagnostic.MA0204.severity = none
 dotnet_diagnostic.RCS1043.severity = none
+# Controls（SettingsPanel/StickerTile 等）同样使用路由事件处理器，需要 async void。
+dotnet_diagnostic.VSTHRD100.severity = none
 
 # Win32 平台适配：
 # - S1450：WndProc 委托必须保存在字段上，防止 GC 回收导致崩溃。

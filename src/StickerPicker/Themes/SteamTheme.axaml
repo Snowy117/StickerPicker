@@ -1,31 +1,80 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <CornerRadius x:Key="ControlCornerRadius">0</CornerRadius>
-  <CornerRadius x:Key="OverlayCornerRadius">0</CornerRadius>
+  <!-- Sharp edges: 2px is the hard maximum per Steam spec. -->
+  <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
+  <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
+  <CornerRadius x:Key="SteamTileCornerRadius">2</CornerRadius>
 
-  <!-- Dark palette (Steam-like) -->
+  <!-- Dark palette (canonical Steam desktop, dark-mode only target) -->
   <Color x:Key="SteamDarkBg">#171a21</Color>
+  <Color x:Key="SteamDarkHeader">#1b2838</Color>
   <Color x:Key="SteamDarkPanel">#1b2838</Color>
   <Color x:Key="SteamDarkPanelAlt">#2a475e</Color>
+  <Color x:Key="SteamDarkHover">#31618b</Color>
   <Color x:Key="SteamDarkBorder">#3d4450</Color>
+  <Color x:Key="SteamDarkBorderSoft">#2a3a4d</Color>
   <Color x:Key="SteamDarkText">#c7d5e0</Color>
+  <Color x:Key="SteamDarkTextBright">#ffffff</Color>
   <Color x:Key="SteamDarkMuted">#8f98a0</Color>
   <Color x:Key="SteamAccent">#66c0f4</Color>
+  <Color x:Key="SteamAccentDim">#417a9b</Color>
 
-  <!-- Light palette -->
+  <!-- Steam primary action green (classic gradient pair) -->
+  <Color x:Key="SteamGreenTop">#75b022</Color>
+  <Color x:Key="SteamGreenBottom">#588a1b</Color>
+  <Color x:Key="SteamGreenTopHover">#8fc63d</Color>
+  <Color x:Key="SteamGreenBottomHover">#6fa523</Color>
+  <Color x:Key="SteamGreenText">#d2efa9</Color>
+
+  <!-- Status -->
+  <Color x:Key="SteamDanger">#a34c25</Color>
+  <Color x:Key="SteamDangerBorder">#5c2d18</Color>
+
+  <!-- Light palette (legacy fallback; dark is canonical) -->
   <Color x:Key="SteamLightBg">#e9e9e9</Color>
+  <Color x:Key="SteamLightHeader">#dcdcdc</Color>
   <Color x:Key="SteamLightPanel">#f5f5f5</Color>
   <Color x:Key="SteamLightPanelAlt">#dcdcdc</Color>
+  <Color x:Key="SteamLightHover">#cfe3f2</Color>
   <Color x:Key="SteamLightBorder">#b0b0b0</Color>
+  <Color x:Key="SteamLightBorderSoft">#c8c8c8</Color>
   <Color x:Key="SteamLightText">#1b1b1b</Color>
+  <Color x:Key="SteamLightTextBright">#000000</Color>
   <Color x:Key="SteamLightMuted">#5a5a5a</Color>
   <Color x:Key="SteamLightAccent">#1a9cfc</Color>
+  <Color x:Key="SteamLightAccentDim">#7fbde6</Color>
 
+  <!-- Solid brushes (dark defaults; swapped by App.ApplySteamBrushes) -->
   <SolidColorBrush x:Key="SteamBgBrush" Color="{StaticResource SteamDarkBg}" />
+  <SolidColorBrush x:Key="SteamHeaderBrush" Color="{StaticResource SteamDarkHeader}" />
   <SolidColorBrush x:Key="SteamPanelBrush" Color="{StaticResource SteamDarkPanel}" />
   <SolidColorBrush x:Key="SteamPanelAltBrush" Color="{StaticResource SteamDarkPanelAlt}" />
+  <SolidColorBrush x:Key="SteamHoverBrush" Color="{StaticResource SteamDarkHover}" />
   <SolidColorBrush x:Key="SteamBorderBrush" Color="{StaticResource SteamDarkBorder}" />
+  <SolidColorBrush x:Key="SteamBorderSoftBrush" Color="{StaticResource SteamDarkBorderSoft}" />
   <SolidColorBrush x:Key="SteamTextBrush" Color="{StaticResource SteamDarkText}" />
+  <SolidColorBrush x:Key="SteamTextBrightBrush" Color="{StaticResource SteamDarkTextBright}" />
   <SolidColorBrush x:Key="SteamMutedBrush" Color="{StaticResource SteamDarkMuted}" />
   <SolidColorBrush x:Key="SteamAccentBrush" Color="{StaticResource SteamAccent}" />
+  <SolidColorBrush x:Key="SteamAccentDimBrush" Color="{StaticResource SteamAccentDim}" />
+  <SolidColorBrush x:Key="SteamGreenTextBrush" Color="{StaticResource SteamGreenText}" />
+  <SolidColorBrush x:Key="SteamDangerBrush" Color="{StaticResource SteamDanger}" />
+  <SolidColorBrush x:Key="SteamDangerBorderBrush" Color="{StaticResource SteamDangerBorder}" />
+
+  <!-- Steam green primary-action gradient + hover variant -->
+  <LinearGradientBrush x:Key="SteamPrimaryBrush"
+                        StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Offset="0" Color="{StaticResource SteamGreenTop}" />
+    <GradientStop Offset="1" Color="{StaticResource SteamGreenBottom}" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SteamPrimaryHoverBrush"
+                        StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Offset="0" Color="{StaticResource SteamGreenTopHover}" />
+    <GradientStop Offset="1" Color="{StaticResource SteamGreenBottomHover}" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SteamHeaderGradientBrush"
+                        StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Offset="0" Color="{StaticResource SteamDarkPanel}" />
+    <GradientStop Offset="1" Color="{StaticResource SteamDarkBg}" />
+  </LinearGradientBrush>
 </ResourceDictionary>
