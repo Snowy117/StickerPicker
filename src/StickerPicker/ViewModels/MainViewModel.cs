@@ -19,7 +19,9 @@ public partial class MainViewModel : ViewModelBase
     private bool _suppressCategoryChange;
     private readonly bool _isReady;
     private DispatcherTimer? _thumbnailSaveTimer;
+    private DispatcherTimer? _thumbnailResizeTimer;
     private double _pendingThumbnailSize;
+    private double _appliedThumbnailSize;
 
     public MainViewModel(
         IStickerLibrary library,
@@ -143,8 +145,30 @@ public partial class MainViewModel : ViewModelBase
             return;
         }
 
-        ResizeTiles(value);
+        ScheduleThumbnailResize(value);
         ScheduleThumbnailSizePersist(value);
+    }
+
+    private void ScheduleThumbnailResize(double value)
+    {
+        _pendingThumbnailSize = value;
+        _thumbnailResizeTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+        _thumbnailResizeTimer.Tick -= OnThumbnailResizeTick;
+        _thumbnailResizeTimer.Tick += OnThumbnailResizeTick;
+        _thumbnailResizeTimer.Stop();
+        _thumbnailResizeTimer.Start();
+    }
+
+    private void OnThumbnailResizeTick(object? sender, EventArgs e)
+    {
+        _thumbnailResizeTimer?.Stop();
+        if (Math.Abs(_appliedThumbnailSize - _pendingThumbnailSize) < 0.5)
+        {
+            return;
+        }
+
+        _appliedThumbnailSize = _pendingThumbnailSize;
+        ResizeTiles(_pendingThumbnailSize);
     }
 
     private void ResizeTiles(double size)
@@ -258,8 +282,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void AdjustThumbnail(int delta)
     {
-        var next = Math.Clamp(ThumbnailSize + delta, 48, 256);
-        ThumbnailSize = next;
+        ThumbnailSize = Math.Clamp(ThumbnailSize + delta, 48, 256);
     }
 
     private void ReloadLibrary()
