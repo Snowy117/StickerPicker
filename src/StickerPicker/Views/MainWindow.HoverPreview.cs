@@ -14,7 +14,6 @@ public partial class MainWindow
 {
     private Window? _hoverPreviewWindow;
     private Image? _hoverPreviewImage;
-    private Border? _hoverPreviewBorder;
     private Bitmap? _hoverBitmap;
     private CancellationTokenSource? _hoverCancellation;
     private Task? _hoverLoadTask;
@@ -56,9 +55,9 @@ public partial class MainWindow
 
     private void ApplyHoverPreviewOpacity(double opacity)
     {
-        if (_hoverPreviewImage is { } image)
+        if (_hoverPreviewWindow is { } window)
         {
-            image.Opacity = opacity;
+            window.Opacity = opacity;
         }
     }
 
@@ -192,7 +191,6 @@ public partial class MainWindow
         _hoverPreviewWindow?.Close();
         _hoverPreviewWindow = null;
         _hoverPreviewImage = null;
-        _hoverPreviewBorder = null;
     }
 
     // Separate topmost window so the preview is never clipped by the main window
@@ -205,15 +203,9 @@ public partial class MainWindow
         }
 
         var opacity = DataContext is MainViewModel vm ? vm.Settings.PreviewOpacity : 0.92;
-        _hoverPreviewImage = new Image
-        {
-            Stretch = Stretch.Uniform,
-            Opacity = opacity,
-        };
+        _hoverPreviewImage = new Image { Stretch = Stretch.Uniform };
         var app = Application.Current;
-        // Transparent background: the preview must not occlude other apps behind it.
-        // Opacity is driven by the image itself so the slider actually reveals content below.
-        _hoverPreviewBorder = new Border
+        var previewContent = new Border
         {
             Background = Brushes.Transparent,
             BorderBrush = app?.FindResource("SteamBorderBrush") as IBrush,
@@ -230,11 +222,13 @@ public partial class MainWindow
             IsHitTestVisible = false,
             Topmost = true,
             CanResize = false,
-            Background = new SolidColorBrush(Colors.Transparent),
+            Background = Brushes.Transparent,
+            TransparencyLevelHint = [WindowTransparencyLevel.Transparent],
+            Opacity = opacity,
             SizeToContent = SizeToContent.WidthAndHeight,
             MaxWidth = 400,
             MaxHeight = 400,
-            Content = _hoverPreviewBorder,
+            Content = previewContent,
         };
     }
 

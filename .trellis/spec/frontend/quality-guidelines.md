@@ -138,3 +138,24 @@ Border), not the inner card. `Opacity` is a single inherited property,
 so the whole tree alpha-blends as one block and child brushes settle
 exactly once. This is why `MainWindow.SettingsAnimation.cs` fades
 `OverlayMask`, not `OverlayCard`.
+
+### Transparent top-level preview windows
+
+A transparent child visual does not make a native top-level window transparent.
+For an Avalonia `Window` that must reveal other applications underneath, use
+all of the following together:
+
+```csharp
+WindowDecorations = WindowDecorations.None,
+Background = Brushes.Transparent,
+TransparencyLevelHint = [WindowTransparencyLevel.Transparent],
+Opacity = previewOpacity,
+```
+
+Apply the user-facing opacity to the top-level `Window`, not only to an
+`Image` or `Border` child. Without `TransparencyLevelHint`, the Win32
+software-rendering path can retain an opaque native surface and blend child
+pixels against Avalonia's fallback background, producing a washed-out mask
+instead of revealing the application behind it. This is a Windows runtime
+behavior and requires a manual smoke test at opacity `1.0`, `0.5`, and the
+minimum supported value after Avalonia or Windows upgrades.
