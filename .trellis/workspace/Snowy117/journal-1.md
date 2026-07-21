@@ -134,3 +134,36 @@ Resolved all remaining jb inspectcode HINT findings (2 in TagEditor.axaml.cs, su
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Auto-paste, clipboard restore, and keep-open selection
+
+**Date**: 2026-07-21
+**Task**: Auto-paste, clipboard restore, and keep-open selection
+**Branch**: `master`
+
+### Summary
+
+Designed and shipped the configurable sticker-selection transaction: hotkey target capture, verified Ctrl+V injection, all-or-nothing clipboard recovery chain with marker+sequence verification and AddClipboardFormatListener invalidation, pure monotonic SelectionCoordinator countdown, mutual-exclusion settings normalization, and scrollable settings overlay. Recovered an accidental master push by force-resetting origin/master and routing the work through PR #2 (squash-merged). Added clipboard-restore-contract spec. Win32 clipboard/input behavior and win-x64 NativeAOT publish remain manual Windows validation.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5a30906` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
