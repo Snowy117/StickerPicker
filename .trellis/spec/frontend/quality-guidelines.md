@@ -159,3 +159,32 @@ pixels against Avalonia's fallback background, producing a washed-out mask
 instead of revealing the application behind it. This is a Windows runtime
 behavior and requires a manual smoke test at opacity `1.0`, `0.5`, and the
 minimum supported value after Avalonia or Windows upgrades.
+
+### Top-level preview positioning uses physical working-area pixels
+
+`Window.Position`, `PointToScreen`, `Screen.Bounds`, and `Screen.WorkingArea`
+use physical pixels. Avalonia layout dimensions and spacing constants use DIP.
+When positioning a preview window:
+
+- Select the screen from the unshifted cursor point, so a candidate position
+  across a monitor edge cannot select the wrong screen.
+- Use `Screen.WorkingArea`, not `Bounds`, to exclude taskbars and reserved OS
+  areas.
+- Convert the preview's DIP size, cursor offset, and safety margin with the
+  selected screen's `Scaling` before comparing them with the working area.
+- Use `Bitmap.Size` for the image's DIP size; `PixelSize` is the decoded pixel
+  count and can differ when image DPI metadata is not 96.
+- Flip before crossing the right or bottom edge, then clamp both axes to the
+  working area as a final guard for small work areas and unusual taskbar
+  placement.
+
+```csharp
+var cursor = PointToScreen(windowRelative);
+var screen = Screens.ScreenFromPoint(cursor);
+var workArea = screen.WorkingArea;
+var previewWidthPx = (int)Math.Ceiling(previewWidthDip * screen.Scaling);
+```
+
+Using DIP dimensions directly against `WorkingArea` delays the flip at scaling
+above 100%, allowing a substantial part of the preview to enter the taskbar or
+leave the monitor before its position changes.

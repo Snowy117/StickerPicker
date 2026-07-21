@@ -240,28 +240,41 @@ public partial class MainWindow
         }
 
         const double Offset = 16;
-        const int MaxBitmap = 392;
-        var previewW = Math.Min(_hoverBitmap?.PixelSize.Width ?? MaxBitmap, MaxBitmap) + 10;
-        var previewH = Math.Min(_hoverBitmap?.PixelSize.Height ?? MaxBitmap, MaxBitmap) + 10;
+        const double WorkAreaMargin = 8;
+        const double MaxBitmap = 392;
+        const double PreviewChrome = 10;
+        const double MaxPreview = 400;
 
-        var client = this.PointToScreen(windowRelative);
-        var x = client.X + (int)Offset;
-        var y = client.Y + (int)Offset;
-
-        var screen = Screens.ScreenFromPoint(new PixelPoint(x, y));
-        if (screen is not null)
+        var cursor = this.PointToScreen(windowRelative);
+        var screen = Screens.ScreenFromPoint(cursor);
+        if (screen is null)
         {
-            if (x + previewW > screen.Bounds.Right)
-            {
-                x = client.X - (int)Offset - previewW;
-            }
-
-            if (y + previewH > screen.Bounds.Bottom)
-            {
-                y = client.Y - (int)Offset - previewH;
-            }
+            return;
         }
 
+        var scaling = screen.Scaling;
+        var offset = (int)Math.Ceiling(Offset * scaling);
+        var margin = (int)Math.Ceiling(WorkAreaMargin * scaling);
+        var previewW = (int)Math.Ceiling(
+            Math.Min((_hoverBitmap?.Size.Width ?? MaxBitmap) + PreviewChrome, MaxPreview) * scaling);
+        var previewH = (int)Math.Ceiling(
+            Math.Min((_hoverBitmap?.Size.Height ?? MaxBitmap) + PreviewChrome, MaxPreview) * scaling);
+        var workArea = screen.WorkingArea;
+
+        var x = cursor.X + offset;
+        if (x + previewW > workArea.Right - margin)
+        {
+            x = cursor.X - offset - previewW;
+        }
+
+        var y = cursor.Y + offset;
+        if (y + previewH > workArea.Bottom - margin)
+        {
+            y = cursor.Y - offset - previewH;
+        }
+
+        x = Math.Clamp(x, workArea.X + margin, Math.Max(workArea.X + margin, workArea.Right - margin - previewW));
+        y = Math.Clamp(y, workArea.Y + margin, Math.Max(workArea.Y + margin, workArea.Bottom - margin - previewH));
         _hoverPreviewWindow.Position = new PixelPoint(x, y);
     }
 
