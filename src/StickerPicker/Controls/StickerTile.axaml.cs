@@ -22,12 +22,18 @@ public partial class StickerTile : UserControl
             return;
         }
 
-        if (DataContext is not StickerItemViewModel item || !item.SelectCommand.CanExecute(item))
+        if (DataContext is not StickerItemViewModel item)
         {
             return;
         }
 
-        item.SelectCommand.Execute(item);
+        var request = (Item: item, AltHeld: e.KeyModifiers.HasFlag(KeyModifiers.Alt));
+        if (!item.SelectCommand.CanExecute(request))
+        {
+            return;
+        }
+
+        item.SelectCommand.Execute(request);
         e.Handled = true;
     }
 

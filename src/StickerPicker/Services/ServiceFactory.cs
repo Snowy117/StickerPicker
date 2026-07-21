@@ -14,6 +14,16 @@ public static class ServiceFactory
         return new NullClipboardImageService();
     }
 
+    public static IForegroundInputService CreateForegroundInput()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return new Platform.Windows.WindowsForegroundInputService();
+        }
+
+        return new NullForegroundInputService();
+    }
+
     public static IHotkeyService CreateHotkey()
     {
         if (OperatingSystem.IsWindows())

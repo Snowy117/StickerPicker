@@ -33,6 +33,27 @@ UI is thin: bind ViewModels to Core seams; platform adapters implement OS behavi
 - Non-BMP DIB fallback is limited; chat apps primarily use file drop for GIF.
 - Grid not virtualized yet — large libraries may need ItemsRepeater later.
 - Manual Windows verification required for QQ/WeChat paste.
+- Selection interaction now clears search and optionally restores clipboard; every successful selection must copy → clear search → decide hide → optionally restore focus / schedule recovery. See `clipboard-restore-contract.md`.
+
+---
+
+## Selection, clipboard restore, and auto-paste contract
+
+The selection flow is one user-visible transaction spanning the tile click,
+Core clipboard seam, platform foreground/input adapter, ViewModel countdown,
+and status bar. The full executable contract lives in
+`clipboard-restore-contract.md`. Read it before touching selection, the
+clipboard service, the foreground-input service, settings, or the status
+bar. Key invariants enforced there:
+
+- `IClipboardImageService` owns **one** active recovery chain; callers see
+  only `ClipboardCopyResult` plus a `RecoveryInvalidated` event — never raw
+  sequence numbers, markers, handles, or snapshot data.
+- `IForegroundInputService` holds a **one-round** target captured only at
+  hotkey time; tray/startup paths invalidate it. Paste runs only after
+  `SetForegroundWindow` + exact `GetForegroundWindow` equality.
+- `SelectionCoordinator` is a pure, injectable (`TimeProvider`) seam shared
+  between the host and Core tests; never put Avalonia or Win32 types in it.
 
 ---
 

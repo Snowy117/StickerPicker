@@ -1,12 +1,18 @@
 namespace StickerPicker.Core.Abstractions;
 
-/// <summary>
-/// Platform seam: copy a local image file to the system clipboard for chat paste.
-/// </summary>
-public interface IClipboardImageService
+public sealed record ClipboardCopyResult(
+    bool Succeeded,
+    bool RecoveryActive,
+    string? RecoverySkipReason = null);
+
+/// <summary>Owns the complete image clipboard transaction and one optional recovery chain.</summary>
+public interface IClipboardImageService : IDisposable
 {
-    /// <summary>
-    /// Writes file-drop + bitmap formats when supported. Returns false on failure.
-    /// </summary>
-    bool CopyImageFile(string absolutePath);
+    event EventHandler? RecoveryInvalidated;
+
+    ClipboardCopyResult CopyImageFile(string absolutePath, bool requestRecovery);
+
+    bool TryRestoreRecovery();
+
+    void CancelRecovery();
 }

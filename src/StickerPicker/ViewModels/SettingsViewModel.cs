@@ -16,6 +16,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly Action<AppConfig> _onConfigApplied;
     private readonly AppConfig _config;
     private readonly bool _isReady;
+    private bool _normalizingSelectionOptions;
 
     public SettingsViewModel(
         IConfigStore configStore,
@@ -40,6 +41,9 @@ public partial class SettingsViewModel : ViewModelBase
         HoverPreview = _config.HoverPreview;
         PreviewOpacity = _config.PreviewOpacity;
         UseGpuRendering = _config.UseGpuRendering;
+        AutoPaste = _config.AutoPaste;
+        ClipboardRestoreDelaySeconds = _config.ClipboardRestoreDelaySeconds;
+        KeepWindowOpenAfterSelection = _config.KeepWindowOpenAfterSelection;
         DataRootDisplay = _paths.DataRoot;
         StatusMessage = "";
         _isReady = true;
@@ -61,6 +65,10 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool UseGpuRendering { get; set; }
+
+    [ObservableProperty] public partial bool AutoPaste { get; set; }
+    [ObservableProperty] public partial int ClipboardRestoreDelaySeconds { get; set; }
+    [ObservableProperty] public partial bool KeepWindowOpenAfterSelection { get; set; }
 
     [ObservableProperty]
     public partial string Hotkey { get; set; }
@@ -89,6 +97,24 @@ public partial class SettingsViewModel : ViewModelBase
             case nameof(HoverPreview):
             case nameof(PreviewOpacity):
             case nameof(UseGpuRendering):
+            case nameof(AutoPaste):
+            case nameof(ClipboardRestoreDelaySeconds):
+            case nameof(KeepWindowOpenAfterSelection):
+                if (_normalizingSelectionOptions)
+                    return;
+                _normalizingSelectionOptions = true;
+                if (string.Equals(e.PropertyName, nameof(AutoPaste), StringComparison.Ordinal) && AutoPaste)
+                {
+                    KeepWindowOpenAfterSelection = false;
+                }
+
+                if (string.Equals(e.PropertyName, nameof(KeepWindowOpenAfterSelection), StringComparison.Ordinal)
+                    && KeepWindowOpenAfterSelection)
+                {
+                    AutoPaste = false;
+                }
+
+                _normalizingSelectionOptions = false;
                 ApplyAndSave();
                 break;
         }
@@ -175,6 +201,9 @@ public partial class SettingsViewModel : ViewModelBase
         _config.HoverPreview = HoverPreview;
         _config.PreviewOpacity = PreviewOpacity;
         _config.UseGpuRendering = UseGpuRendering;
+        _config.AutoPaste = AutoPaste;
+        _config.ClipboardRestoreDelaySeconds = Math.Clamp(ClipboardRestoreDelaySeconds, 0, 60);
+        _config.KeepWindowOpenAfterSelection = KeepWindowOpenAfterSelection;
         _config.Hotkey = Hotkey;
         Persist();
         _windowChrome.SetTopmost(AlwaysOnTop);

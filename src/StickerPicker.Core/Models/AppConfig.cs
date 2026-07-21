@@ -22,6 +22,12 @@ public sealed class AppConfig
 
     public bool UseGpuRendering { get; set; }
 
+    public bool AutoPaste { get; set; }
+
+    public int ClipboardRestoreDelaySeconds { get; set; }
+
+    public bool KeepWindowOpenAfterSelection { get; set; }
+
     public WindowGeometry Window { get; set; } = new();
 
     public AppConfig Clone() => new()
@@ -35,6 +41,9 @@ public sealed class AppConfig
         HoverPreview = HoverPreview,
         PreviewOpacity = PreviewOpacity,
         UseGpuRendering = UseGpuRendering,
+        AutoPaste = AutoPaste,
+        ClipboardRestoreDelaySeconds = ClipboardRestoreDelaySeconds,
+        KeepWindowOpenAfterSelection = KeepWindowOpenAfterSelection,
         Window = Window.Clone(),
     };
 }

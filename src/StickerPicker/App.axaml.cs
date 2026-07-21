@@ -54,6 +54,7 @@ public partial class App : Application
         _windowChrome = new AvaloniaWindowChromeService();
 
         var clipboard = ServiceFactory.CreateClipboard();
+        var foregroundInput = ServiceFactory.CreateForegroundInput();
         _hotkeyService = ServiceFactory.CreateHotkey();
 
         var mainWindow = new MainWindow();
@@ -63,7 +64,8 @@ public partial class App : Application
             paths,
             clipboard,
             _hotkeyService,
-            _windowChrome);
+            _windowChrome,
+            foregroundInput);
 
         mainWindow.DataContext = _mainViewModel;
         _windowChrome.Attach(mainWindow);
@@ -80,7 +82,7 @@ public partial class App : Application
 
     private void WireTrayCommands()
     {
-        ShowWindowCommand = new RelayCommand(() => _windowChrome?.ToggleVisible());
+        ShowWindowCommand = new RelayCommand(() => { _mainViewModel?.InvalidateAutoPasteTarget(); _windowChrome?.ToggleVisible(); });
         ExitCommand = new RelayCommand(() =>
         {
             _isShuttingDown = true;
@@ -96,6 +98,7 @@ public partial class App : Application
         });
         OpenSettingsCommand = new RelayCommand(() =>
         {
+            _mainViewModel?.InvalidateAutoPasteTarget();
             _windowChrome?.Show();
             if (_mainViewModel is { } vm)
             {

@@ -10,6 +10,8 @@ public partial class MainViewModel
         : StringComparer.Ordinal;
     private readonly HashSet<StickerItemViewModel> _activeStickers = [];
     private bool _isThumbnailSurfaceVisible;
+    private double _pendingThumbnailSize;
+    private double _appliedThumbnailSize;
 
     public void SetThumbnailActive(StickerItemViewModel item, bool isActive)
     {
