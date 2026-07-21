@@ -98,7 +98,8 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private async void OnImportFilesClick(object? sender, RoutedEventArgs e)
+    // ReSharper disable once UnusedParameter.Local
+    private async void OnImportFilesClick(object? _, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel vm)
         {
@@ -131,7 +132,8 @@ public partial class MainWindow : Window
         await vm.ImportPathsCommand.ExecuteAsync(paths);
     }
 
-    private async void OnImportFolderClick(object? sender, RoutedEventArgs e)
+    // ReSharper disable once UnusedParameter.Local
+    private async void OnImportFolderClick(object? _, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel vm)
         {

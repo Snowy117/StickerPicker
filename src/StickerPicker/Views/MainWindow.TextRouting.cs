@@ -26,7 +26,7 @@ public partial class MainWindow
 
         // Any editable control already holding focus should receive the text
         // itself; do not hijack typing aimed at the tag editor, hotkey box, etc.
-        if (FocusManager?.GetFocusedElement() is TextBox)
+        if (FocusManager.GetFocusedElement() is TextBox)
         {
             return;
         }

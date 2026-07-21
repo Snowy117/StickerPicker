@@ -6,6 +6,9 @@ namespace StickerPicker.Core.Abstractions;
 /// </summary>
 public interface IWindowChromeService
 {
+    // Kept as part of the public chrome contract even though no current caller uses it;
+    // removing it would force future consumers to depend on the concrete implementation.
+    // ReSharper disable once UnusedMember.Global
     bool IsVisible { get; }
     void Show();
     void Hide();

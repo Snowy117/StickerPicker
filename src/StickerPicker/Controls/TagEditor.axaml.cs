@@ -36,22 +36,21 @@ public partial class TagEditor : UserControl
         RebuildChips();
     }
 
+    // jb emits mutually-exclusive MissingSomeEnumCasesNoDefault / HandlesSomeKnownEnumValuesWithDefault
+    // for a switch on the 100+ value Key enum, so the if-chain stays.
+    // ReSharper disable once ConvertIfStatementToSwitchStatement
     private void OnTagInputKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
-            var value = TagInput.Text?.Trim();
-            if (!string.IsNullOrEmpty(value) && !_tags.Contains(value))
-            {
-                _tags.Add(value);
-                RebuildChips();
-            }
-
+            TryAddTag(TagInput.Text);
             TagInput.Text = "";
             e.Handled = true;
             return;
         }
 
+        // Inverting this compound guard would hurt readability (De Morgan on 3-way &&).
+        // ReSharper disable once InvertIf
         if (e.Key == Key.Back
             && string.IsNullOrEmpty(TagInput.Text)
             && _tags.Count > 0)
@@ -60,6 +59,18 @@ public partial class TagEditor : UserControl
             RebuildChips();
             e.Handled = true;
         }
+    }
+
+    private void TryAddTag(string? raw)
+    {
+        var value = raw?.Trim();
+        if (string.IsNullOrEmpty(value) || _tags.Contains(value))
+        {
+            return;
+        }
+
+        _tags.Add(value);
+        RebuildChips();
     }
 
     private void OnChipRemove(string tag)

@@ -28,6 +28,8 @@ public partial class MainWindow
             case StickerActionKind.Delete:
                 await DeleteStickerAsync(vm, e.Sticker);
                 break;
+            default:
+                throw new InvalidOperationException($"Unknown sticker action kind: {e.Kind}");
         }
     }
 

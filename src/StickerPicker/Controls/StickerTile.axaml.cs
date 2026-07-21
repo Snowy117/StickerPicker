@@ -84,7 +84,7 @@ public partial class StickerTile : UserControl
 
     private void OnMoveToCategoryClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem menuItem && menuItem.CommandParameter is string targetId)
+        if (sender is MenuItem { CommandParameter: string targetId })
         {
             RaiseAction(StickerActionKind.Move, targetId);
         }

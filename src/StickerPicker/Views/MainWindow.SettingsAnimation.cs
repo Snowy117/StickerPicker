@@ -21,13 +21,15 @@ public partial class MainWindow
 
     private void AttachViewModel(object? dataContext)
     {
-        if (dataContext is MainViewModel vm)
+        if (dataContext is not MainViewModel vm)
         {
-            vm.PropertyChanged -= OnViewModelPropertyChanged;
-            vm.PropertyChanged += OnViewModelPropertyChanged;
-            SyncOverlayInitial(OverlayMask, vm.IsSettingsOpen);
-            SyncOverlayInitial(TagEditorMask, vm.IsTagEditorOpen);
+            return;
         }
+
+        vm.PropertyChanged -= OnViewModelPropertyChanged;
+        vm.PropertyChanged += OnViewModelPropertyChanged;
+        SyncOverlayInitial(OverlayMask, vm.IsSettingsOpen);
+        SyncOverlayInitial(TagEditorMask, vm.IsTagEditorOpen);
     }
 
     private static void SyncOverlayInitial(Border mask, bool isOpen)

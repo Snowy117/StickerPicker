@@ -35,12 +35,14 @@ public partial class MainWindow
 
     private void AttachHoverSettings(object? dataContext)
     {
-        if (dataContext is MainViewModel vm)
+        if (dataContext is not MainViewModel vm)
         {
-            vm.Settings.PropertyChanged -= OnHoverSettingsPropertyChanged;
-            vm.Settings.PropertyChanged += OnHoverSettingsPropertyChanged;
-            ApplyHoverPreviewOpacity(vm.Settings.PreviewOpacity);
+            return;
         }
+
+        vm.Settings.PropertyChanged -= OnHoverSettingsPropertyChanged;
+        vm.Settings.PropertyChanged += OnHoverSettingsPropertyChanged;
+        ApplyHoverPreviewOpacity(vm.Settings.PreviewOpacity);
     }
 
     private void OnHoverSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)

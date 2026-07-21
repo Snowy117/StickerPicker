@@ -23,21 +23,25 @@ internal static class Program
             .WithInterFont()
             .LogToTrace();
 
-        if (OperatingSystem.IsWindows())
+        return ConfigureWindowsRendering(builder);
+    }
+
+    // Software rendering avoids keeping ANGLE, D3D, and a vendor GPU driver's
+    // large process-wide baseline for this small, mostly-static surface.
+    private static AppBuilder ConfigureWindowsRendering(AppBuilder builder)
+    {
+        if (!OperatingSystem.IsWindows())
         {
-            var useGpu = LoadStartupConfig().UseGpuRendering;
-            if (!useGpu)
-            {
-                // Software rendering avoids keeping ANGLE, D3D, and a vendor GPU driver's
-                // large process-wide baseline for this small, mostly-static surface.
-                builder.With(new Win32PlatformOptions
-                {
-                    RenderingMode = [Win32RenderingMode.Software],
-                });
-            }
+            return builder;
         }
 
-        return builder;
+        var useGpu = LoadStartupConfig().UseGpuRendering;
+        return useGpu
+            ? builder
+            : builder.With(new Win32PlatformOptions
+            {
+                RenderingMode = [Win32RenderingMode.Software],
+            });
     }
 
     // Safe to call pre-Avalonia: AppPaths.Resolve only mkdirs, ConfigStore.Load is read-only.
