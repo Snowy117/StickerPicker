@@ -116,6 +116,19 @@ instead would double-fire during IME composition and break CJK. Modifier-
 only / function / navigation keys are not `TextInput` and are naturally
 ignored — no need to filter them.
 
+For the first input received while the search box is unfocused, update
+`SearchBox.Text` before focusing it, then collapse `CaretIndex`,
+`SelectionStart`, and `SelectionEnd` to the new text length. Do not set the
+caret from the old text and then update only the ViewModel: the binding update
+can leave the newly focused box at the old insertion point, so a sequence such
+as `123` becomes `231`.
+
+Global type-to-search must be suspended while modal UI is visible. This
+includes inline overlay masks, visible owned dialog windows, and routed input
+whose source belongs to another `TopLevel` (for example a context-menu popup).
+Editable controls keep their native input behavior and must never be routed to
+search.
+
 ### Window.IsActive covers topmost-but-unfocused
 
 `Window.IsActive` is true only when the window has keyboard focus. A

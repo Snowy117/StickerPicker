@@ -1,7 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using StickerPicker.ViewModels;
 
 namespace StickerPicker.Views;
 
@@ -19,7 +19,7 @@ public partial class MainWindow
 
     private void OnGlobalTextInput(object? sender, TextInputEventArgs e)
     {
-        if (string.IsNullOrEmpty(e.Text))
+        if (string.IsNullOrEmpty(e.Text) || IsGlobalTextRoutingSuppressed(e))
         {
             return;
         }
@@ -31,14 +31,25 @@ public partial class MainWindow
             return;
         }
 
-        if (DataContext is not MainViewModel vm)
+        SearchBox.Text = string.Concat(SearchBox.Text, e.Text);
+        SearchBox.Focus();
+        SearchBox.CaretIndex = SearchBox.Text.Length;
+        SearchBox.SelectionStart = SearchBox.CaretIndex;
+        SearchBox.SelectionEnd = SearchBox.CaretIndex;
+        e.Handled = true;
+    }
+
+    private bool IsGlobalTextRoutingSuppressed(TextInputEventArgs e)
+    {
+        if (OverlayMask.IsVisible
+            || TagEditorMask.IsVisible
+            || OwnedWindows.Any(window => window.IsVisible))
         {
-            return;
+            return true;
         }
 
-        SearchBox.Focus();
-        SearchBox.CaretIndex = SearchBox.Text?.Length ?? 0;
-        vm.SearchText += e.Text;
-        e.Handled = true;
+        return e.Source is Visual source
+            && GetTopLevel(source) is { } sourceTopLevel
+            && sourceTopLevel != this;
     }
 }
