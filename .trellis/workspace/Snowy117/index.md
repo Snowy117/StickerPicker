@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
-- **Last Active**: 2026-07-19
+- **Total Sessions**: 2
+- **Last Active**: 2026-07-21
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~44 | Active |
+| `journal-1.md` | ~136 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-07-21 | Clear jb HINT findings and fix native hover-preview transparency | `ecdeaad`, `57bed2d` | `feat/gui-overhaul` |
 | 1 | 2026-07-19 | StickerPicker MVP-A implement + NRE fix | `6d98b0d`, `032959c`, `688f9df`, `a6c3271`, `bdb24ee` | `master` |
 <!-- @@@/auto:session-history -->
 

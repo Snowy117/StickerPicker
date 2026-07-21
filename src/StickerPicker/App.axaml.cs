@@ -38,10 +38,10 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    public IRelayCommand? ShowWindowCommand { get; private set; }
+    private IRelayCommand? ShowWindowCommand { get; set; }
     private IRelayCommand? ExitCommand { get; set; }
     private IRelayCommand? OpenSettingsCommand { get; set; }
-    public NativeMenu? TrayMenu { get; private set; }
+    private NativeMenu? TrayMenu { get; set; }
 
     private void ConfigureDesktop(IClassicDesktopStyleApplicationLifetime desktop)
     {
@@ -114,11 +114,13 @@ public partial class App : Application
 
     private void AttachTrayIconBindings()
     {
-        if (TrayIcon.GetIcons(this)?.FirstOrDefault() is { } icon)
+        if (TrayIcon.GetIcons(this)?.FirstOrDefault() is not { } icon)
         {
-            icon.Command = ShowWindowCommand;
-            icon.Menu = TrayMenu;
+            return;
         }
+
+        icon.Command = ShowWindowCommand;
+        icon.Menu = TrayMenu;
     }
 
     private void WireMainWindowOpened(MainWindow mainWindow)

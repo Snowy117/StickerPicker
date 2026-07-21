@@ -20,7 +20,7 @@ public partial class MainWindow
         switch (e.Kind)
         {
             case StickerActionKind.EditTags:
-                await EditTagsAsync(vm, e.Sticker);
+                vm.OpenTagEditor(e.Sticker);
                 break;
             case StickerActionKind.Move:
                 await vm.MoveStickerCommand.ExecuteAsync((e.Sticker, e.TargetCategoryId!));
@@ -28,20 +28,9 @@ public partial class MainWindow
             case StickerActionKind.Delete:
                 await DeleteStickerAsync(vm, e.Sticker);
                 break;
+            default:
+                throw new InvalidOperationException($"Unknown sticker action kind: {e.Kind}");
         }
-    }
-
-    private async Task EditTagsAsync(MainViewModel vm, StickerItemViewModel item)
-    {
-        var current = string.Join(", ", item.Sticker.Tags);
-        var result = await PromptForNameAsync("编辑标签", "标签（逗号分隔）", initial: current);
-        if (result is null)
-        {
-            return;
-        }
-
-        var tags = result.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        await vm.EditStickerTagsCommand.ExecuteAsync((item, tags));
     }
 
     private async Task DeleteStickerAsync(MainViewModel vm, StickerItemViewModel item)

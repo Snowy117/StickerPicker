@@ -1,4 +1,7 @@
 using Avalonia;
+using StickerPicker.Core.Config;
+using StickerPicker.Core.Models;
+using StickerPicker.Core.Paths;
 
 namespace StickerPicker;
 
@@ -20,20 +23,39 @@ internal static class Program
             .WithInterFont()
             .LogToTrace();
 
-        if (OperatingSystem.IsWindows()
-            && !string.Equals(
-                Environment.GetEnvironmentVariable("STICKERPICKER_USE_GPU"),
-                "1",
-                StringComparison.Ordinal))
+        return ConfigureWindowsRendering(builder);
+    }
+
+    // Software rendering avoids keeping ANGLE, D3D, and a vendor GPU driver's
+    // large process-wide baseline for this small, mostly-static surface.
+    private static AppBuilder ConfigureWindowsRendering(AppBuilder builder)
+    {
+        if (!OperatingSystem.IsWindows())
         {
-            builder.With(new Win32PlatformOptions
-            {
-                // This app renders a small, mostly static surface. Software rendering avoids
-                // keeping ANGLE, D3D, and a vendor GPU driver's large process-wide baseline.
-                RenderingMode = [Win32RenderingMode.Software],
-            });
+            return builder;
         }
 
-        return builder;
+        var useGpu = LoadStartupConfig().UseGpuRendering;
+        return useGpu
+            ? builder
+            : builder.With(new Win32PlatformOptions
+            {
+                RenderingMode = [Win32RenderingMode.Software],
+            });
+    }
+
+    // Safe to call pre-Avalonia: AppPaths.Resolve only mkdirs, ConfigStore.Load is read-only.
+    private static AppConfig LoadStartupConfig()
+    {
+        try
+        {
+            var paths = new AppPaths();
+            var store = new ConfigStore(paths);
+            return store.Load();
+        }
+        catch
+        {
+            return new AppConfig();
+        }
     }
 }

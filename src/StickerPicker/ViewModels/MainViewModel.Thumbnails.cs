@@ -164,12 +164,8 @@ public partial class MainViewModel
         var terms = searchText.Split(
             ' ',
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        foreach (var term in terms)
-        {
-            query = query.Where(sticker => MatchesSearch(sticker, term));
-        }
 
-        return [.. query];
+        return [.. query.Where(sticker => terms.All(term => MatchesSearch(sticker, term)))];
     }
 
     private static bool MatchesSearch(Sticker sticker, string term) =>

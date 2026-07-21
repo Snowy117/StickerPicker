@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -25,6 +26,39 @@ public partial class MainWindow
         AddHandler(StickerHoverRouter.StickerHoverEvent, OnStickerHover);
         PointerMoved += OnHoverPointerMoved;
         Deactivated += (_, _) => HideHoverPreview();
+        DataContextChanged += OnHoverDataContextChanged;
+        AttachHoverSettings(DataContext);
+    }
+
+    private void OnHoverDataContextChanged(object? sender, EventArgs e) => AttachHoverSettings(DataContext);
+
+    private void AttachHoverSettings(object? dataContext)
+    {
+        if (dataContext is not MainViewModel vm)
+        {
+            return;
+        }
+
+        vm.Settings.PropertyChanged -= OnHoverSettingsPropertyChanged;
+        vm.Settings.PropertyChanged += OnHoverSettingsPropertyChanged;
+        ApplyHoverPreviewOpacity(vm.Settings.PreviewOpacity);
+    }
+
+    private void OnHoverSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (string.Equals(e.PropertyName, nameof(SettingsViewModel.PreviewOpacity), StringComparison.Ordinal)
+            && sender is SettingsViewModel settings)
+        {
+            ApplyHoverPreviewOpacity(settings.PreviewOpacity);
+        }
+    }
+
+    private void ApplyHoverPreviewOpacity(double opacity)
+    {
+        if (_hoverPreviewWindow is { } window)
+        {
+            window.Opacity = opacity;
+        }
     }
 
     private void OnStickerHover(object? sender, StickerHoverEventArgs e)
@@ -36,9 +70,12 @@ public partial class MainWindow
 
         if (!e.IsEnter)
         {
+            vm.HoveredFileName = "";
             HideHoverPreview();
             return;
         }
+
+        vm.HoveredFileName = e.Sticker.FileName;
 
         if (!vm.Settings.HoverPreview)
         {
@@ -134,6 +171,11 @@ public partial class MainWindow
 
         _hoverBitmap?.Dispose();
         _hoverBitmap = null;
+
+        if (DataContext is MainViewModel vm)
+        {
+            vm.HoveredFileName = "";
+        }
     }
 
     private void CancelHoverDecode()
@@ -160,8 +202,18 @@ public partial class MainWindow
             return;
         }
 
+        var opacity = DataContext is MainViewModel vm ? vm.Settings.PreviewOpacity : 0.92;
         _hoverPreviewImage = new Image { Stretch = Stretch.Uniform };
         var app = Application.Current;
+        var previewContent = new Border
+        {
+            Background = Brushes.Transparent,
+            BorderBrush = app?.FindResource("SteamBorderBrush") as IBrush,
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(4),
+            Padding = new Thickness(4),
+            Child = _hoverPreviewImage,
+        };
         _hoverPreviewWindow = new Window
         {
             ShowActivated = false,
@@ -170,20 +222,13 @@ public partial class MainWindow
             IsHitTestVisible = false,
             Topmost = true,
             CanResize = false,
-            Background = new SolidColorBrush(Colors.Transparent),
+            Background = Brushes.Transparent,
+            TransparencyLevelHint = [WindowTransparencyLevel.Transparent],
+            Opacity = opacity,
             SizeToContent = SizeToContent.WidthAndHeight,
             MaxWidth = 400,
             MaxHeight = 400,
-            Content = new Border
-            {
-                Opacity = 0.92,
-                Background = app?.FindResource("SteamPanelBrush") as IBrush,
-                BorderBrush = app?.FindResource("SteamBorderBrush") as IBrush,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(4),
-                Child = _hoverPreviewImage,
-            },
+            Content = previewContent,
         };
     }
 

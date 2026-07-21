@@ -9,8 +9,7 @@
           Height="{Binding TileSize}"
           PointerPressed="OnPointerPressed"
           PointerEntered="OnPointerEntered"
-          PointerExited="OnPointerExited"
-          ToolTip.Tip="{Binding FileName}">
+          PointerExited="OnPointerExited">
     <Panel>
       <Image Source="{Binding Thumbnail}"
              Stretch="Uniform"

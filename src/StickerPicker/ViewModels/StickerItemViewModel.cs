@@ -6,6 +6,8 @@ using StickerPicker.Services;
 
 namespace StickerPicker.ViewModels;
 
+// ReSharper disable ReplaceWithFieldKeyword — primary-constructor auto-properties are
+// already minimal; switching to the C# 13 'field' keyword adds ceremony without benefit.
 public sealed class StickerItemViewModel(
     Sticker sticker,
     double tileSize,
@@ -18,7 +20,6 @@ public sealed class StickerItemViewModel(
     private double _tileSize = tileSize;
     private int _decodedSide;
     private int _requestedSide;
-    private bool _isThumbnailActive;
     private bool _disposed;
 
     public Sticker Sticker { get; private set; } = sticker;
@@ -27,7 +28,7 @@ public sealed class StickerItemViewModel(
     public string FileName => Sticker.FileName;
     public string CategoryId => Sticker.CategoryId;
     public ICommand SelectCommand { get; } = selectCommand;
-    public bool IsThumbnailActive => _isThumbnailActive;
+    public bool IsThumbnailActive { get; private set; }
 
     public double TileSize
     {
@@ -67,7 +68,7 @@ public sealed class StickerItemViewModel(
 
     public void RequestThumbnail(double tileSize)
     {
-        if (_disposed || !_isThumbnailActive)
+        if (_disposed || !IsThumbnailActive)
         {
             return;
         }
@@ -88,12 +89,12 @@ public sealed class StickerItemViewModel(
 
     public void SetThumbnailActive(bool isActive)
     {
-        if (_disposed || _isThumbnailActive == isActive)
+        if (_disposed || IsThumbnailActive == isActive)
         {
             return;
         }
 
-        _isThumbnailActive = isActive;
+        IsThumbnailActive = isActive;
         if (isActive)
         {
             RequestThumbnail(TileSize);
@@ -128,7 +129,7 @@ public sealed class StickerItemViewModel(
 
     private async Task LoadThumbnailAsync(int targetSide, CancellationTokenSource request)
     {
-        Bitmap? bitmap = null;
+        Bitmap? bitmap;
         try
         {
             bitmap = await BoundedImageDecoder
@@ -174,13 +175,15 @@ public sealed class StickerItemViewModel(
     {
         Dispatcher.UIThread.Post(() =>
         {
-            if (!_disposed
-                && ReferenceEquals(request, _thumbnailCancellation)
-                && targetSide == _requestedSide)
+            if (_disposed
+                || !ReferenceEquals(request, _thumbnailCancellation)
+                || targetSide != _requestedSide)
             {
-                _requestedSide = 0;
-                CompleteThumbnailRequest(request);
+                return;
             }
+
+            _requestedSide = 0;
+            CompleteThumbnailRequest(request);
         });
     }
 

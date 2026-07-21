@@ -1,16 +1,12 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using StickerPicker.ViewModels;
 
 namespace StickerPicker.Controls;
 
 public partial class StickerTile : UserControl
 {
-    private const int HoverDelayMs = 250;
-    private DispatcherTimer? _hoverTimer;
-
     public StickerTile()
     {
         InitializeComponent();
@@ -42,21 +38,11 @@ public partial class StickerTile : UserControl
 
     private void OnPointerEntered(object? sender, PointerEventArgs e)
     {
-        _hoverTimer?.Stop();
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(HoverDelayMs) };
-        timer.Tick += (_, _) =>
-        {
-            timer.Stop();
-            RaiseHover(isEnter: true);
-        };
-        _hoverTimer = timer;
-        timer.Start();
+        RaiseHover(isEnter: true);
     }
 
     private void OnPointerExited(object? sender, PointerEventArgs e)
     {
-        _hoverTimer?.Stop();
-        _hoverTimer = null;
         RaiseHover(isEnter: false);
     }
 
@@ -98,7 +84,7 @@ public partial class StickerTile : UserControl
 
     private void OnMoveToCategoryClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem menuItem && menuItem.CommandParameter is string targetId)
+        if (sender is MenuItem { CommandParameter: string targetId })
         {
             RaiseAction(StickerActionKind.Move, targetId);
         }

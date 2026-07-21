@@ -60,15 +60,25 @@ public sealed class AvaloniaWindowChromeService : IWindowChromeService
 
     public void ToggleVisible()
     {
-        if (IsVisible)
+        RunOnUi(() =>
         {
-            Hide();
-        }
-        else
-        {
-            Show();
-            Activate();
-        }
+            if (_window is null)
+            {
+                return;
+            }
+
+            // Surface unless the window is both visible and active. The visible-but-
+            // unfocused case (e.g. AlwaysOnTop shadowed by another app) must surface too.
+            if (!_window.IsVisible || !_window.IsActive)
+            {
+                Show();
+                Activate();
+            }
+            else
+            {
+                _window.Hide();
+            }
+        });
     }
 
     public void SetTopmost(bool topmost)

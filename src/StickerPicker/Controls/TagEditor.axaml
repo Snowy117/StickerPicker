@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:StickerPicker.ViewModels"
+             x:Class="StickerPicker.Controls.TagEditor"
+             x:DataType="vm:StickerItemViewModel">
+  <DockPanel>
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
+      <TextBlock Grid.Column="0"
+                 VerticalAlignment="Center"
+                 Text="Enter 添加 · 退格删末项"
+                 Classes="muted"
+                 FontSize="11" />
+      <Button Grid.Column="1"
+              Classes="subtle"
+              Content="取消"
+              Margin="0,0,6,0"
+              Click="OnCancelClick" />
+      <Button Grid.Column="2"
+              Classes="primary"
+              Content="应用"
+              Click="OnApplyClick" />
+    </Grid>
+
+    <StackPanel Spacing="8">
+      <TextBlock Text="标签" Classes="section" />
+      <WrapPanel x:Name="ChipsPanel" />
+      <TextBox x:Name="TagInput"
+               PlaceholderText="输入标签后回车"
+               MinHeight="28"
+               KeyDown="OnTagInputKeyDown" />
+    </StackPanel>
+  </DockPanel>
+</UserControl>

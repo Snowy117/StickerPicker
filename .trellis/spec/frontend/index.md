@@ -20,6 +20,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [State Management](./state-management.md) | Local state, global state, server state | Filled (MVP-A baseline) |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | Filled (MVP-A baseline) |
 | [Type Safety](./type-safety.md) | Type patterns, validation | Filled (MVP-A baseline) |
+| [Visual Style](./visual-style.md) | Cyber-industrial dark / tactical high-density / gamer glassmorphism identity | Filled |
 
 ---
 

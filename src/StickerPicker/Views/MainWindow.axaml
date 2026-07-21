@@ -22,14 +22,28 @@
               BorderBrush="{DynamicResource SteamBorderBrush}"
               BorderThickness="0,1,0,0"
               Padding="10,3">
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="{Binding StatusText}" Classes="muted" FontSize="11" VerticalAlignment="Center" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <TextBlock Grid.Column="0"
+                     Text="{Binding HoveredFileName}"
+                     Classes="bright"
+                     FontSize="11"
+                     VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis"
+                     MaxWidth="420"
+                     Margin="0,0,12,0" />
           <TextBlock Grid.Column="1"
+                     Text="{Binding StatusText}"
+                     Classes="muted"
+                     FontSize="11"
+                     VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis" />
+          <TextBlock Grid.Column="2"
                      Text="{Binding ErrorMessage}"
                      Foreground="{DynamicResource SteamErrorBrush}"
                      FontSize="11"
                      VerticalAlignment="Center"
-                     Margin="12,0,0,0" />
+                     Margin="12,0,0,0"
+                     TextTrimming="CharacterEllipsis" />
         </Grid>
       </Border>
 
@@ -104,7 +118,8 @@
                 BorderThickness="0,0,0,1"
                 Padding="10,8">
           <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-            <TextBox PlaceholderText="搜索 tag / 文件名"
+            <TextBox x:Name="SearchBox"
+                     PlaceholderText="搜索 tag / 文件名"
                      Text="{Binding SearchText}"
                      MinHeight="28" />
             <Button Grid.Column="1"
@@ -157,20 +172,20 @@
     <Border x:Name="OverlayMask"
             IsVisible="False"
             Background="#B3000000"
-            ZIndex="10">
+            ZIndex="10"
+            Opacity="0">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.16" />
+        </Transitions>
+      </Border.Transitions>
       <Border x:Name="OverlayCard"
               Classes="panel"
               Width="460"
               HorizontalAlignment="Center"
               VerticalAlignment="Center"
               BorderThickness="1"
-              Padding="0"
-              Opacity="0">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-          </Transitions>
-        </Border.Transitions>
+              Padding="0">
         <DockPanel>
           <!-- Settings header -->
           <Border DockPanel.Dock="Top"
@@ -202,9 +217,37 @@
             <CheckBox Content="窗口置顶"
                       IsChecked="{Binding Settings.AlwaysOnTop}" />
 
+            <!-- GPU rendering (Windows; takes effect on next launch) -->
+            <StackPanel Spacing="2">
+              <CheckBox Content="启用 GPU 渲染"
+                        IsChecked="{Binding Settings.UseGpuRendering}" />
+              <TextBlock Text="仅 Windows；重启后生效"
+                         Classes="muted"
+                         FontSize="11"
+                         Margin="20,0,0,0" />
+            </StackPanel>
+
             <!-- Hover preview -->
             <CheckBox Content="鼠标悬停时显示大图"
                       IsChecked="{Binding Settings.HoverPreview}" />
+
+            <!-- Hover preview opacity -->
+            <StackPanel Spacing="4">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="预览不透明度" Classes="section" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Settings.PreviewOpacity, StringFormat=P0}"
+                           Classes="muted"
+                           FontSize="11"
+                           VerticalAlignment="Center" />
+              </Grid>
+              <Slider Minimum="0.2"
+                      Maximum="1"
+                      Value="{Binding Settings.PreviewOpacity}"
+                      TickFrequency="0.01"
+                      SmallChange="0.01"
+                      LargeChange="0.05" />
+            </StackPanel>
 
             <!-- Hotkey -->
             <StackPanel Spacing="4">
@@ -241,6 +284,48 @@
                        TextWrapping="Wrap"
                        FontSize="11" />
           </StackPanel>
+        </DockPanel>
+      </Border>
+    </Border>
+
+    <!-- ===== Tag editor overlay: mirrors the settings overlay ===== -->
+    <Border x:Name="TagEditorMask"
+            IsVisible="False"
+            Background="#B3000000"
+            ZIndex="20"
+            Opacity="0">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.16" />
+        </Transitions>
+      </Border.Transitions>
+      <Border x:Name="TagEditorCard"
+              Classes="panel"
+              Width="420"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              BorderThickness="1"
+              Padding="0">
+        <DockPanel>
+          <Border DockPanel.Dock="Top"
+                  Classes="headerbar"
+                  Padding="14,9">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="编辑标签" Classes="header" />
+              <Button Grid.Column="1"
+                      Classes="subtle"
+                      Content="✕"
+                      Width="26"
+                      Height="24"
+                      Padding="0"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding CloseTagEditorCommand}" />
+            </Grid>
+          </Border>
+
+          <Border Padding="16,12">
+            <controls:TagEditor DataContext="{Binding TagEditorTarget}" />
+          </Border>
         </DockPanel>
       </Border>
     </Border>
