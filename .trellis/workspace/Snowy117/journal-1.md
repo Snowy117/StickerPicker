@@ -100,3 +100,37 @@ Ten independently-committed UX improvements for the StickerPicker desktop client
 - `dotnet format --severity info --verify-no-changes` exit 0
 - LSP: no info/hint diagnostics across workspace
 - All `.cs` files < 400 lines (largest: FolderStickerLibraryTests.cs @ 375)
+
+
+## Session 2: Clear jb HINT findings and fix native hover-preview transparency
+
+**Date**: 2026-07-21
+**Task**: Clear jb HINT findings and fix native hover-preview transparency
+**Branch**: `feat/gui-overhaul`
+
+### Summary
+
+Resolved all remaining jb inspectcode HINT findings (2 in TagEditor.axaml.cs, suppressed with documented pragmas per editorconfig convention) and fixed the hover-preview transparency bug: now requests WindowTransparencyLevel.Transparent on the top-level Window and applies PreviewOpacity to Window.Opacity (not Image.Opacity), so the Win32 software renderer composites against apps behind the preview instead of washing out against the fallback surface. Added Avalonia 12.1 source-backed research note and updated frontend quality guidelines with the transparent top-level window contract. All gates green: build 0/0, tests 68/68, format EXIT 0, LSP clean, jb 0 issues. PR #1 created against master.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ecdeaad` | (see git log) |
+| `57bed2d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
