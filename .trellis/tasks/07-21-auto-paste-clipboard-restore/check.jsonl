@@ -1,0 +1,10 @@
+{"file":".trellis/spec/frontend/index.md","reason":"Route the full desktop UI quality check."}
+{"file":".trellis/spec/frontend/directory-structure.md","reason":"Verify platform separation, ViewModel thinness, and file-size limits."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Verify Avalonia runtime pitfalls and clipboard/hotkey/manual Windows contracts."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Verify nullable, result ownership, and cross-seam type safety."}
+{"file":".trellis/spec/backend/index.md","reason":"Route the Core/config quality check."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Verify deep configuration seams, tests, and Core isolation."}
+{"file":".trellis/spec/backend/native-aot-persistence.md","reason":"Verify AppConfig serialization and host-native publish gates."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Audit complete selection-to-restore data flow across all layers."}
+{"file":".trellis/tasks/07-21-auto-paste-clipboard-restore/research/windows-clipboard-restore.md","reason":"Check implementation against Win32 clipboard ownership and conservative all-or-nothing guarantees."}
+{"file":".trellis/tasks/07-21-auto-paste-clipboard-restore/research/windows-focus-input.md","reason":"Check target verification, foreground failure, balanced input, and UIPI handling."}

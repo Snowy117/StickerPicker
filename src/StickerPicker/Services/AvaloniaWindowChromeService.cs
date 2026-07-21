@@ -14,6 +14,8 @@ public sealed class AvaloniaWindowChromeService : IWindowChromeService
 
     public bool IsVisible => _window?.IsVisible == true;
 
+    public bool IsActive => _window?.IsActive == true;
+
     public void Show()
     {
         RunOnUi(() =>

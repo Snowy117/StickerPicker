@@ -88,6 +88,11 @@ public partial class MainWindow : Window
         }
 
         HideHoverPreview();
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.InvalidateAutoPasteTarget();
+        }
+
         e.Cancel = true;
         Hide();
     }

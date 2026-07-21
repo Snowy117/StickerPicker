@@ -10,6 +10,7 @@ public interface IWindowChromeService
     // removing it would force future consumers to depend on the concrete implementation.
     // ReSharper disable once UnusedMember.Global
     bool IsVisible { get; }
+    bool IsActive { get; }
     void Show();
     void Hide();
     void Activate();

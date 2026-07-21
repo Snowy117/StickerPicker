@@ -1,0 +1,10 @@
+{"file":".trellis/spec/frontend/index.md","reason":"Desktop UI specification entry point and pre-development routing."}
+{"file":".trellis/spec/frontend/directory-structure.md","reason":"Keep Win32 adapters under Platform/Windows, UI orchestration thin, and C# files below 400 lines."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Clipboard, tray, hotkey, Avalonia runtime, and manual Windows verification contracts."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Nullable and cross-seam result type requirements for new clipboard/input modules."}
+{"file":".trellis/spec/backend/index.md","reason":"Core configuration specification entry point."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Deep Core seams, tests, and file-size constraints."}
+{"file":".trellis/spec/backend/native-aot-persistence.md","reason":"AppConfig JSON changes and NativeAOT/source-generation validation contract."}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"End-to-end config, platform adapter, ViewModel, and UI data-flow review."}
+{"file":".trellis/tasks/07-21-auto-paste-clipboard-restore/research/windows-clipboard-restore.md","reason":"Authoritative Win32 clipboard ownership, snapshot eligibility, marker, sequence, and resource-limit findings."}
+{"file":".trellis/tasks/07-21-auto-paste-clipboard-restore/research/windows-focus-input.md","reason":"Foreground activation restrictions, target verification, SendInput, and UIPI findings."}

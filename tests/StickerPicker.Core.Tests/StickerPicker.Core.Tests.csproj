@@ -23,4 +23,9 @@
     <ProjectReference Include="..\..\src\StickerPicker.Core\StickerPicker.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\src\StickerPicker\Services\SelectionCoordinator.cs"
+             Link="Desktop\SelectionCoordinator.cs" />
+  </ItemGroup>
+
 </Project>

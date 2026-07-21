@@ -22,7 +22,7 @@
               BorderBrush="{DynamicResource SteamBorderBrush}"
               BorderThickness="0,1,0,0"
               Padding="10,3">
-        <Grid ColumnDefinitions="Auto,*,Auto">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
           <TextBlock Grid.Column="0"
                      Text="{Binding HoveredFileName}"
                      Classes="bright"
@@ -37,7 +37,11 @@
                      FontSize="11"
                      VerticalAlignment="Center"
                      TextTrimming="CharacterEllipsis" />
-          <TextBlock Grid.Column="2"
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsClipboardRestorePending}">
+            <ProgressBar Width="90" Minimum="0" Maximum="1" Value="{Binding ClipboardRestoreProgress}" />
+            <TextBlock Text="{Binding ClipboardRestoreRemainingText}" Classes="muted" FontSize="11" />
+          </StackPanel>
+          <TextBlock Grid.Column="3"
                      Text="{Binding ErrorMessage}"
                      Foreground="{DynamicResource SteamErrorBrush}"
                      FontSize="11"
@@ -204,7 +208,14 @@
             </Grid>
           </Border>
 
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" MaxHeight="380">
           <StackPanel Margin="16,12" Spacing="12">
+            <CheckBox Content="自动粘贴" IsChecked="{Binding Settings.AutoPaste}" />
+            <CheckBox Content="点击后不关闭窗口" IsChecked="{Binding Settings.KeepWindowOpenAfterSelection}" />
+            <StackPanel Spacing="4">
+              <TextBlock Text="剪贴板自动恢复读秒（0 表示关闭）" Classes="section" />
+              <NumericUpDown Minimum="0" Maximum="60" Increment="1" FormatString="0" Value="{Binding Settings.ClipboardRestoreDelaySeconds}" />
+            </StackPanel>
             <!-- Theme -->
             <StackPanel Spacing="4">
               <TextBlock Text="主题" Classes="section" />
@@ -284,6 +295,7 @@
                        TextWrapping="Wrap"
                        FontSize="11" />
           </StackPanel>
+          </ScrollViewer>
         </DockPanel>
       </Border>
     </Border>

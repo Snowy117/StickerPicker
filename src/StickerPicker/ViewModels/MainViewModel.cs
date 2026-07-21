@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StickerPicker.Core.Abstractions;
 using StickerPicker.Core.Models;
+using StickerPicker.Services;
 
 namespace StickerPicker.ViewModels;
 
@@ -12,7 +13,6 @@ public partial class MainViewModel : ViewModelBase
     private readonly IStickerLibrary _library;
     private readonly IConfigStore _configStore;
     private readonly IAppPaths _paths;
-    private readonly IClipboardImageService _clipboard;
     private readonly IHotkeyService _hotkeyService;
     private readonly IWindowChromeService _windowChrome;
     private readonly SemaphoreSlim _libraryOperationGate = new(1, 1);
@@ -25,8 +25,6 @@ public partial class MainViewModel : ViewModelBase
     private DispatcherTimer? _thumbnailResizeTimer;
     private DispatcherTimer? _thumbnailDecodeTimer;
     private DispatcherTimer? _searchTimer;
-    private double _pendingThumbnailSize;
-    private double _appliedThumbnailSize;
     private bool _isShutdown;
 
     public MainViewModel(
@@ -35,14 +33,18 @@ public partial class MainViewModel : ViewModelBase
         IAppPaths paths,
         IClipboardImageService clipboard,
         IHotkeyService hotkeyService,
-        IWindowChromeService windowChrome)
+        IWindowChromeService windowChrome,
+        IForegroundInputService foregroundInput)
     {
         _library = library;
         _configStore = configStore;
         _paths = paths;
-        _clipboard = clipboard;
         _hotkeyService = hotkeyService;
         _windowChrome = windowChrome;
+        _clipboard = clipboard;
+        _foregroundInput = foregroundInput;
+        _selection = new SelectionCoordinator(clipboard, foregroundInput, windowChrome, TimeProvider.System);
+        _clipboard.RecoveryInvalidated += OnRecoveryInvalidated;
         _config = _configStore.Load();
 
         ThumbnailSize = _config.ThumbnailSize;
@@ -180,6 +182,7 @@ public partial class MainViewModel : ViewModelBase
         _thumbnailDecodeTimer?.Stop();
         _thumbnailSaveTimer?.Stop();
         _searchTimer?.Stop();
+        ShutdownSelection();
         DisposeStickers(Stickers);
         Stickers.Clear();
     }
@@ -250,32 +253,6 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void SelectSticker(StickerItemViewModel? item)
-    {
-        if (item is null)
-        {
-            return;
-        }
-
-        try
-        {
-            if (!_clipboard.CopyImageFile(item.AbsolutePath))
-            {
-                ErrorMessage = "复制到剪贴板失败。";
-                return;
-            }
-
-            ErrorMessage = null;
-            StatusText = $"已复制 {item.FileName}";
-            _windowChrome.Hide();
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
-
-    [RelayCommand]
     private void AdjustThumbnail(int delta)
     {
         ThumbnailSize = Math.Clamp(ThumbnailSize + delta, 48, 256);
@@ -338,6 +315,10 @@ public partial class MainViewModel : ViewModelBase
         _config = config.Clone();
         Theme = _config.Theme;
         AlwaysOnTop = _config.AlwaysOnTop;
+        if (_config.ClipboardRestoreDelaySeconds == 0)
+        {
+            StopRestoreCountdown(cancelClipboard: true);
+        }
     }
 
     private void RegisterHotkeyFromConfig()
@@ -348,11 +329,6 @@ public partial class MainViewModel : ViewModelBase
         {
             ErrorMessage = $"热键 {_config.Hotkey} 注册失败，请在设置中更换。";
         }
-    }
-
-    private void OnHotkeyPressed(object? sender, EventArgs e)
-    {
-        Dispatcher.UIThread.Post(_windowChrome.ToggleVisible);
     }
 
     private void RebuildCategories()
